@@ -46,6 +46,17 @@ repos:
         name: ratchet | anti-bypass guard
         entry: uv run git-agent-ratchet anti-bypass
         args:
-          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,.pre-commit-hooks.yaml
+          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json,.pre-commit-hooks.yaml
         language: system
         pass_filenames: true
+
+      - id: ratchet-max-file-lines
+        name: ratchet | max file lines
+        entry: uv run git-agent-ratchet max-file-lines
+        args:
+          - --baseline=config/ratchets/file_lines.json
+          - --dir=git_agent_ratchet
+          - --max=350
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -28,3 +28,14 @@
   language: python
   pass_filenames: true
   stages: [pre-commit, manual]
+
+- id: ratchet-max-file-lines
+  name: git-agent-ratchet | max file lines
+  description: >-
+    Fail when the total line overage across over-sized source files exceeds the
+    recorded baseline. Auto-shrinks the baseline when files contract.
+  entry: ratchet-max-file-lines
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit, manual]

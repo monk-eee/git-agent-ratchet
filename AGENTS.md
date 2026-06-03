@@ -52,6 +52,7 @@ mechanically enforced, it goes in the "Known soft rules" section of
 | No duplicate private helpers | `ratchet-no-duplicate-helpers` | [git_agent_ratchet/hooks/no_duplicate_helpers.py](git_agent_ratchet/hooks/no_duplicate_helpers.py) |
 | No agent chatter in any file | `ratchet-deny-agent-chatter` | [git_agent_ratchet/hooks/deny_agent_chatter.py](git_agent_ratchet/hooks/deny_agent_chatter.py) |
 | No agent self-bypass of the ratchets | `ratchet-anti-bypass` | [git_agent_ratchet/hooks/anti_bypass.py](git_agent_ratchet/hooks/anti_bypass.py) |
+| Per-file line count <= 350 (sum of overages) | `ratchet-max-file-lines` | [git_agent_ratchet/hooks/max_file_lines.py](git_agent_ratchet/hooks/max_file_lines.py) |
 | Lint + format clean | `ruff` (check + format --check) | `pyproject.toml [tool.ruff]` |
 | Trailing whitespace / EOF / line endings / merge markers / large files | `pre-commit-hooks` | `.pre-commit-config.yaml` |
 
@@ -124,9 +125,9 @@ right-shaped change) or split into a sequence of right-shaped commits, each
 individually principled.
 
 ### File discipline
-- **Max 350 lines per file.** Split aggressively. This is enforced by review,
-  not yet by a ratchet -- add one if it becomes a recurring miss (and update
-  the table above).
+- **Max 350 lines per file.** Split aggressively. Enforced by Ratchet D
+  (`ratchet-max-file-lines`); the baseline lives at
+  `config/ratchets/file_lines.json` and is allowed to shrink, never grow.
 - **Close irrelevant files.** Only keep the current file, its test, and
   related module visible.
 
