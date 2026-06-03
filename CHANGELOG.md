@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one-time PyPI-side publisher configuration documented in the workflow.
 - 100% line + branch coverage (`fail_under = 95` in `pyproject.toml`).
 - Codecov upload on `ubuntu-latest` + Python 3.12 (`codecov/codecov-action@v4`).
+- `codecov.yml` policy file mirrors local gates: 95% project floor
+  (matches `fail_under`) and 80% patch floor (matches `diff-cover`).
 - `diff-cover` PR gate: PR-changed lines must be >= 80% covered.
 - CodeQL security analysis workflow (`security-and-quality` query suite).
 - Dependabot config: weekly Python + GitHub Actions updates, grouped.
