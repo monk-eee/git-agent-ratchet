@@ -34,10 +34,10 @@ Progress tracker, known gaps, and triage list.
 - [x] Pluggable language support for Ratchet A (Python AST + TypeScript/JavaScript
       regex + C# regex extractors, `--lang` filter, registry under
       `git_agent_ratchet/ratchets/extractors/`)
+- [x] Tagged + released v1.1.0 to PyPI via trusted publisher
 
 ## Next
 
-- [ ] Tag v1.0.0 once CI is green end-to-end
 - [x] Configure PyPI trusted publisher on pypi.org for `git-agent-ratchet`
       (owner `monk-eee`, repo `git-agent-ratchet`, workflow `release.yml`,
       environment `pypi`) -- one-time, requires PyPI maintainer access

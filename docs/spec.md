@@ -5,7 +5,7 @@ A Programmatic Git Ratchet System for Automated Agent Guarding
 - **Author:** Monkee Magic & Git Ratchet Core
 - **Target Ecosystem:** Python, pre-commit, LLM Agents
 - **Date:** June 2026
-- **Version:** v1.0.0
+- **Version:** v1.1.0
 
 ---
 
@@ -50,7 +50,7 @@ repository inside their project's root `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args: [--baseline=config/ratchets/duplicates.json, --dir=src/]
@@ -58,6 +58,8 @@ repos:
         files: \.(py|md|txt|go|js|ts|rs)$
       - id: ratchet-anti-bypass
         args: [--enforce-files=AGENTS.md,.pre-commit-config.yaml]
+      - id: ratchet-max-file-lines
+        args: [--baseline=config/ratchets/file_lines.json, --dir=src/, --max=350]
 ```
 
 ### 2.2 The Unified Baseline Registry Format

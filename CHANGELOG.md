@@ -85,5 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ratchet C never logs the bypass key value; only its presence is
   acknowledged in failure output (regression-tested).
 
-[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/monk-eee/git-agent-ratchet/releases/tag/v1.0.0

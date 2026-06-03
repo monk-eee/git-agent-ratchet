@@ -29,7 +29,7 @@ install` yourself or the hooks are silently bypassed.
 | Run tests with coverage | `make test-cov` |
 | Format + auto-fix lint | `make format` |
 | Verify lint clean | `make lint` |
-| Dogfood all three ratchets | `make ratchet` |
+| Dogfood all four ratchets | `make ratchet` |
 | Re-seed the duplicates baseline (after a real cleanup) | `make seed-baseline` |
 | Run pre-commit against every file | `uv run pre-commit run --all-files` |
 
@@ -58,9 +58,10 @@ tests/                    # pytest suite
 
 | Rule | Gate |
 | --- | --- |
-| No duplicate private helpers | `ratchet-no-duplicate-helpers` |
+| No duplicate private helpers (Python / TS / JS / C#) | `ratchet-no-duplicate-helpers` |
 | No agent chatter in committed text | `ratchet-deny-agent-chatter` |
 | No agent-driven mutation of ratchet config | `ratchet-anti-bypass` |
+| Per-file line count <= 350 (sum of overages) | `ratchet-max-file-lines` |
 | Lint + format clean | `ruff check` + `ruff format --check` |
 | Hygiene (EOF, whitespace, line endings, merge markers, large files) | `pre-commit-hooks` |
 | Tests pass on Linux / Windows / macOS x 3.10 / 3.11 / 3.12 | GitHub Actions `test` matrix |

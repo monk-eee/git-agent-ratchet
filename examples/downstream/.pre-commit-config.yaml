@@ -17,7 +17,7 @@ repos:
         args: ["--fix=lf"]
 
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args:

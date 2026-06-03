@@ -44,7 +44,7 @@ directly with `uv run`. Everything works through `uv`; do not use `pip`.
 # Edit code.
 make format       # ruff check --fix + ruff format
 make test         # full pytest
-make ratchet      # dogfood the three hooks against this repo
+make ratchet      # dogfood the four hooks against this repo
 git add <named-files-only>
 git commit        # pre-commit runs everything in `make ratchet` + lint
 ```

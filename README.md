@@ -8,7 +8,8 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-de5feb)](https://github.com/astral-sh/uv)
-[![Version](https://img.shields.io/badge/version-1.0.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
+[![PyPI](https://img.shields.io/pypi/v/git-agent-ratchet.svg)](https://pypi.org/project/git-agent-ratchet/)
 
 > The rule didn't change. The cost of breaking it did.
 
@@ -17,8 +18,9 @@ into deterministic gates at commit time. Four small, ugly, single-purpose
 scripts. They do not get clever. They just fail loudly when an agent does
 the thing your file already told it not to do.
 
-- **Ratchet A** -- `no-duplicate-helpers`. AST scan. Private helper names
-  are not allowed to spread across more files than the recorded baseline.
+- **Ratchet A** -- `no-duplicate-helpers`. Cross-language scan (Python AST;
+  TypeScript / JavaScript / C# regex). Private helper names are not allowed
+  to spread across more files than the recorded baseline.
 - **Ratchet B** -- `deny-agent-chatter`. Regex scan. Conversational
   preamble (`"Sure, I can help with..."`, `"As an AI, ..."`, `"Now let me <!-- ratchet-allow: agent_chatter -->
   check the docs..."`) cannot ride into a commit.
@@ -93,8 +95,9 @@ Red-flag prefixes that historically get forked: `_run_*`, `_safe_*`,
 `_load_*_or_default`, `_no_prompt_*`, `_retry_*`, `_atomic_*`.
 
 Enforcement:
-- `ratchet-no-duplicate-helpers` (this repo) -- AST scanner. Fails on any
-  module-level `def _name(...)` appearing in 2+ files outside `tests/`
+- `ratchet-no-duplicate-helpers` (this repo) -- cross-language scanner
+  (Python AST + TypeScript/JavaScript/C# regex). Fails on any
+  helper-shaped name appearing in 2+ files outside `tests/`
   when the count exceeds the baseline.
 - Baseline lives at `config/ratchets/duplicates.json`. Allowed to shrink,
   never grow.
@@ -118,7 +121,7 @@ Add the repo to your project's `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args:
@@ -156,7 +159,7 @@ A minimal working layout lives in
 
 ---
 
-## The three ratchets, in detail
+## The four ratchets, in detail
 
 ### Ratchet A -- `ratchet-no-duplicate-helpers`
 
@@ -406,7 +409,7 @@ make test-cov               # with coverage
 make lint                   # ruff check + ruff format --check
 make format                 # ruff check --fix + ruff format
 
-# Dogfood: run all three ratchets against this repo
+# Dogfood: run all four ratchets against this repo
 make ratchet
 ```
 
@@ -471,7 +474,7 @@ to converge across the community, not fork per repo.
 The pattern is older than the package. The framing -- "the file is
 context, the hook is the gate" -- is the consensus position from
 practitioners who got tired of agents quietly breaking the same rule on
-turn six of every session. The specific failure modes the three ratchets
+turn six of every session. The specific failure modes the four ratchets
 catch are scars from real codebases. They have names; the bypasses do
 too; both are written down here so the next agent has to walk past them
 on the way in.

@@ -9,7 +9,7 @@ help:
 	@echo "  make test-cov       run pytest with coverage"
 	@echo "  make lint           ruff check + ruff format --check"
 	@echo "  make format         ruff check --fix + ruff format"
-	@echo "  make ratchet        dogfood: run all three ratchets against this repo"
+	@echo "  make ratchet        dogfood: run all four ratchets against this repo"
 	@echo "  make seed-baseline  create the duplicates baseline from current state"
 	@echo "  make clean          remove caches / build artefacts"
 

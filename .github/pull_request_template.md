@@ -26,7 +26,7 @@ issue, or describe the failure mode this fixes. -->
 
 - [ ] `make test` passes locally (76+ tests, 100% coverage maintained).
 - [ ] `make lint` passes locally (ruff check + ruff format --check).
-- [ ] `make ratchet` passes against this repo (all three ratchets dogfood).
+- [ ] `make ratchet` passes against this repo (all four ratchets dogfood).
 - [ ] If a bug was fixed, a regression test in
       `tests/test_<module>_regressions.py` was added and verified to fail
       against the un-fixed code and pass against the fix.
