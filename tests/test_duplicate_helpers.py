@@ -1,4 +1,4 @@
-"""Tests for the AST-based duplicate-helper scanner (Ratchet A's pure logic)."""
+"""Tests for the scanner core of Ratchet A (language-agnostic dispatch)."""
 
 from __future__ import annotations
 
@@ -8,9 +8,7 @@ from textwrap import dedent
 from git_agent_ratchet.ratchets.duplicate_helpers import (
     DEFAULT_EXCLUDE_DIRS,
     DuplicateHelper,
-    collect_top_level_functions,
-    is_private_helper,
-    iter_python_files,
+    iter_source_files,
     metric_value,
     scan_directory,
 )
@@ -21,57 +19,34 @@ def _write(path: Path, source: str) -> None:
     path.write_text(dedent(source).lstrip(), encoding="utf-8")
 
 
-def test_is_private_helper_classifies_correctly() -> None:
-    assert is_private_helper("_foo") is True
-    assert is_private_helper("_run_command") is True
-    assert is_private_helper("foo") is False
-    assert is_private_helper("__init__") is False
-    assert is_private_helper("__dunder__") is False
+def test_iter_source_files_filters_by_extension(tmp_path: Path) -> None:
+    _write(tmp_path / "src" / "a.py", "x = 1\n")
+    _write(tmp_path / "src" / "b.ts", "const x = 1\n")
+    _write(tmp_path / "src" / "c.md", "# notes\n")
+
+    files = sorted(p.name for p in iter_source_files(tmp_path, [".py"]))
+
+    assert files == ["a.py"]
 
 
-def test_collect_top_level_functions_returns_only_top_level(tmp_path: Path) -> None:
-    src = tmp_path / "mod.py"
-    _write(
-        src,
-        """
-        def _top_one():
-            def _inner():
-                pass
-
-        async def _top_two():
-            pass
-
-        class C:
-            def _method(self):
-                pass
-        """,
-    )
-
-    names = collect_top_level_functions(src)
-
-    assert names == ["_top_one", "_top_two"]
-
-
-def test_collect_top_level_functions_handles_syntax_error(tmp_path: Path) -> None:
-    src = tmp_path / "broken.py"
-    src.write_text("def _bad(:\n    pass\n", encoding="utf-8")
-
-    assert collect_top_level_functions(src) == []
-
-
-def test_collect_top_level_functions_handles_missing_file(tmp_path: Path) -> None:
-    assert collect_top_level_functions(tmp_path / "does_not_exist.py") == []
-
-
-def test_iter_python_files_skips_excluded_dirs(tmp_path: Path) -> None:
+def test_iter_source_files_skips_excluded_dirs(tmp_path: Path) -> None:
     _write(tmp_path / "src" / "a.py", "x = 1\n")
     _write(tmp_path / "tests" / "test_a.py", "x = 1\n")
     _write(tmp_path / "test" / "more.py", "x = 1\n")
+    _write(tmp_path / "node_modules" / "pkg" / "index.py", "x = 1\n")
     _write(tmp_path / "src" / "sub" / "b.py", "x = 1\n")
 
-    files = sorted(p.name for p in iter_python_files(tmp_path, DEFAULT_EXCLUDE_DIRS))
+    files = sorted(p.name for p in iter_source_files(tmp_path, [".py"], DEFAULT_EXCLUDE_DIRS))
 
     assert files == ["a.py", "b.py"]
+
+
+def test_iter_source_files_extension_match_is_case_insensitive(tmp_path: Path) -> None:
+    _write(tmp_path / "Module.PY", "x = 1\n")
+
+    files = sorted(p.name for p in iter_source_files(tmp_path, [".py"]))
+
+    assert files == ["Module.PY"]
 
 
 def test_scan_directory_flags_duplicate_private_helpers(tmp_path: Path) -> None:
@@ -131,6 +106,38 @@ def test_scan_directory_is_idempotent(tmp_path: Path) -> None:
     second = scan_directory(pkg)
 
     assert first == second
+
+
+def test_scan_directory_spans_languages_when_unrestricted(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg"
+    _write(pkg / "a.py", "def _shared():\n    pass\n")
+    _write(pkg / "b.ts", "function _shared() { return 1; }\n")
+
+    duplicates = scan_directory(pkg)
+
+    assert len(duplicates) == 1
+    assert duplicates[0].name == "_shared"
+    assert len(duplicates[0].occurrences) == 2
+
+
+def test_scan_directory_respects_language_filter(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg"
+    _write(pkg / "a.py", "def _shared():\n    pass\n")
+    _write(pkg / "b.ts", "function _shared() { return 1; }\n")
+
+    duplicates = scan_directory(pkg, languages=["python"])
+
+    assert duplicates == []
+
+
+def test_scan_directory_unknown_language_silently_drops(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg"
+    _write(pkg / "a.py", "def _shared():\n    pass\n")
+    _write(pkg / "b.py", "def _shared():\n    pass\n")
+
+    duplicates = scan_directory(pkg, languages=["fortran"])
+
+    assert duplicates == []
 
 
 def test_duplicate_helper_to_dict_shape() -> None:

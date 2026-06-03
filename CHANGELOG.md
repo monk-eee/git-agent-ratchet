@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Multi-language support for Ratchet A.** Duplicate-helper detection
+  now scans TypeScript / JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`,
+  `.mjs`, `.cjs`) and C# (`.cs`) in addition to Python. New extractor
+  registry under `git_agent_ratchet/ratchets/extractors/` with one
+  module per language; each defines its own "helper-shaped" predicate
+  (Python: leading underscore; TS/JS: unexported top-level function or
+  arrow const; C#: `private` method). New `--lang` flag on the hook
+  restricts scanning to a subset of registered languages. 35 new
+  extractor tests; total suite now 137 tests at 100% coverage.
+- Default exclude list grows to skip `node_modules`, `bin`, `obj`,
+  `.venv`, `venv`, `dist`, `build` so the scanner does not chase build
+  output or vendor trees in polyglot repos.
 - **Ratchet D -- `ratchet-max-file-lines`.** Per-file Python line-count
   ratchet. Records the total overage across all files larger than `--max`
   (default 350) in a separate baseline; metric is allowed to shrink, never

@@ -45,6 +45,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory name to exclude (repeatable). Defaults to tests/test.",
     )
     parser.add_argument(
+        "--lang",
+        dest="languages",
+        action="append",
+        default=None,
+        choices=["python", "typescript", "csharp"],
+        help=(
+            "Restrict scanning to one or more languages (repeatable). "
+            "Default: all registered extractors."
+        ),
+    )
+    parser.add_argument(
         "filenames",
         nargs="*",
         help="Files supplied by pre-commit (ignored; full directory scan is used).",
@@ -67,7 +78,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     exclude = tuple(args.exclude) if args.exclude else ("tests", "test")
-    duplicates = scan_directory(args.directory, exclude_dirs=exclude)
+    duplicates = scan_directory(
+        args.directory,
+        exclude_dirs=exclude,
+        languages=args.languages,
+    )
     current = metric_value(duplicates)
 
     baseline = Baseline.load(args.baseline)

@@ -165,12 +165,23 @@ string formatters, safe shell execution wrappers, atomic array appenders)
 instead of traversing existing abstractions to reuse them. By the fifth
 helper, the soft "check `libs/` first" rule has slipped.
 
-**What it does.** Walks the directory you point at with `--dir`, parses
-each `.py` file with `ast`, collects top-level `def` / `async def` names,
-keeps only the private/semi-private ones (`_foo`, not `__init__`), and
-groups by name across files. Any name that appears in two or more files
-outside `tests/` is a "duplicate". The total occurrence count is the
-metric; the baseline JSON records it.
+**What it does.** Walks the directory you point at with `--dir`,
+dispatches each file to a language-specific extractor based on its
+suffix, and groups the resulting "helper-shaped" names across files.
+Any name that appears in two or more files outside `tests/` is a
+"duplicate". The total occurrence count is the metric; the baseline JSON
+records it.
+
+Supported languages:
+
+| Language | Extensions | "Helper-shaped" means |
+| --- | --- | --- |
+| Python | `.py` | Top-level `def` / `async def` with a leading underscore (`_foo`, not `__init__`). AST-parsed. |
+| TypeScript / JavaScript | `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` | Unexported top-level `function` declaration or `const NAME = (...) => ...` / `function` arrow. Regex, column-zero only. |
+| C# | `.cs` | Any line declaring a `private` (optionally `static` / `async` / etc.) method. Regex; constructors, fields, and properties excluded. |
+
+Extractors live under [git_agent_ratchet/ratchets/extractors/](git_agent_ratchet/ratchets/extractors/);
+adding a new language is a new module plus a registry entry.
 
 **Gate rule.**
 - Current count > baseline -> exit 1 with a per-name report on stderr.
@@ -186,7 +197,8 @@ metric; the baseline JSON records it.
 | --- | --- | --- |
 | `--baseline` | `config/ratchets/duplicates.json` | Path to the JSON registry. |
 | `--dir` | `src` | Directory to scan. |
-| `--exclude` | `tests`, `test` | Repeatable. Path-segment names to skip. |
+| `--exclude` | `tests`, `test`, `node_modules`, `bin`, `obj`, `.venv`, `venv`, `dist`, `build` | Repeatable. Path-segment names to skip. |
+| `--lang` | all | Repeatable. Restrict scanning to one or more of `python`, `typescript`, `csharp`. |
 
 ### Ratchet B -- `ratchet-deny-agent-chatter`
 

@@ -31,6 +31,9 @@ Progress tracker, known gaps, and triage list.
 - [x] Ratchet D (max-file-lines) -- scanner + hook + CLI + tests + dogfood
 - [x] PyPI publish workflow (trusted publisher, OIDC, environment `pypi`)
 - [x] Example downstream consumer layout under `examples/downstream/`
+- [x] Pluggable language support for Ratchet A (Python AST + TypeScript/JavaScript
+      regex + C# regex extractors, `--lang` filter, registry under
+      `git_agent_ratchet/ratchets/extractors/`)
 
 ## Next
 
@@ -39,8 +42,8 @@ Progress tracker, known gaps, and triage list.
       (owner `monk-eee`, repo `git-agent-ratchet`, workflow `release.yml`,
       environment `pypi`) -- one-time, requires PyPI maintainer access
 - [x] Example downstream consumer repo to validate the published manifest
-- [ ] Pluggable language support for Ratchet A (currently Python-only)
-- [ ] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
+- [x] Pluggable language support for Ratchet A (Python, TypeScript/JavaScript, C#)
+- [x] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
 - [x] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet
 
 ## Known soft rules

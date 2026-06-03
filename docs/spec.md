@@ -91,7 +91,7 @@ commit state `t+1`, the condition `C_{t+1} <= C_t` is strictly enforced.
 
 ## 3. Core Hook Implementations
 
-### 3.1 Ratchet A: AST-Driven Duplicate Helper Detection
+### 3.1 Ratchet A: Cross-Language Duplicate Helper Detection
 
 **Target Failure Mode:** Agents frequently fork local helper utilities (e.g.,
 internal string formatters, safe shell execution wrappers, atomic array appenders)
@@ -99,19 +99,31 @@ instead of traversing existing abstractions to perform reuse.
 
 **Programmatic Execution Mechanics:**
 
-1. The hook scans all python source files inside specified directory trees using
-   Python's native `ast.parse`.
-2. It collects all top-level functions (`ast.FunctionDef`) and extracts their
-   signature footprints while ignoring anything within explicit `tests/`
-   directories.
-3. It groups functions by identity name. Any private or semi-private function
-   identifier (e.g., prefix `_`) present across two or more distinct physical
-   source files is flagged.
-4. **The Gate Rule:** If the count of duplicate occurrences exceeds the recorded
-   value in the baseline file, the hook exits with exit code `1`, outputting the
-   exact delta to stdout. If the count is lower than the baseline, the hook
-   modifies the baseline file directly with the clean state, staging the shrunk
-   registry for inclusion in the current commit.
+1. The hook scans every source file inside specified directory trees,
+   dispatched to a language-specific extractor by file suffix:
+
+   | Language | Extensions | "Helper-shaped" definition | Parser |
+   | --- | --- | --- | --- |
+   | Python | `.py` | Top-level `def` / `async def` with a leading underscore but not a dunder. | `ast.parse` |
+   | TypeScript / JavaScript | `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` | Unexported top-level `function` declaration or `const NAME = (...) => ...` / `function` arrow at column zero. | Regex |
+   | C# | `.cs` | Any line declaring a `private` (optionally `static` / `async` / generic) method. Constructors, fields, and properties excluded. | Regex |
+
+2. Each extractor returns the names of declarations it considers
+   "helper-shaped" for its language. Names are grouped across files
+   ignoring anything under the configured exclude directories.
+3. Any helper name present in two or more distinct physical source
+   files is flagged. The metric tracked in the baseline is the total
+   occurrence count across all flagged groups.
+4. **The Gate Rule:** If the count exceeds the recorded value in the
+   baseline file, the hook exits with exit code `1`, outputting the
+   exact delta to stderr. If the count is lower than the baseline, the
+   hook modifies the baseline file directly with the clean state,
+   staging the shrunk registry for inclusion in the current commit.
+5. The `--lang` flag (repeatable) restricts scanning to a subset of
+   registered languages; default behaviour is to run every extractor.
+   Adding a new language is a new module under
+   `git_agent_ratchet/ratchets/extractors/` plus a registry entry --
+   no other call site changes.
 
 ### 3.2 Ratchet B: Lexical Agent Chatter Stripping
 
