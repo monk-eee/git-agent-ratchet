@@ -41,7 +41,17 @@ jobs:
       - name: Run tests
         run: uv run pytest --cov=git_agent_ratchet --cov-report=term-missing --cov-report=xml -q
 
-      - name: Upload coverage (ubuntu / 3.12 only)
+      - name: Upload coverage to Codecov (ubuntu / 3.12 only)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage artifact (ubuntu / 3.12 only)
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: actions/upload-artifact@v4
         with:
@@ -118,3 +128,43 @@ jobs:
           name: dist
           path: dist/
           if-no-files-found: error
+
+  diff-cover:
+    name: diff coverage (PRs only)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov=git_agent_ratchet --cov-report=xml -q
+
+      - name: Enforce diff coverage (>= 80% on PR-changed lines)
+        run: |
+          uv run diff-cover coverage.xml \
+            --compare-branch=origin/${{ github.base_ref }} \
+            --fail-under=80 \
+            --markdown-report=diff-cover.md
+          cat diff-cover.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diff coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-coverage
+          path: diff-cover.md
+          if-no-files-found: warn

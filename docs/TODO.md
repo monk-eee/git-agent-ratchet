@@ -20,6 +20,14 @@ Progress tracker, known gaps, and triage list.
 - [x] Makefile (`setup`, `test`, `lint`, `format`, `ratchet`, `seed-baseline`)
 - [x] GitHub Actions CI (test matrix + lint + pre-commit + build)
 - [x] LICENSE (MIT)
+- [x] 100% line + branch coverage (`fail_under = 95` in pyproject)
+- [x] Codecov upload + badge
+- [x] diff-cover PR gate (>= 80% on changed lines)
+- [x] CodeQL security analysis workflow
+- [x] Dependabot config (weekly pip + github-actions, grouped)
+- [x] SECURITY.md (private vulnerability reporting + threat model)
+- [x] CHANGELOG.md (Keep a Changelog format)
+- [x] Pull request template + bug / feature issue templates
 
 ## Next
 
@@ -28,6 +36,8 @@ Progress tracker, known gaps, and triage list.
 - [ ] Example downstream consumer repo to validate the published manifest
 - [ ] Add a `--max-file-lines` ratchet to enforce the 350-line soft rule
 - [ ] Pluggable language support for Ratchet A (currently Python-only)
+- [ ] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
+- [ ] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet
 
 ## Known soft rules
 

@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from textwrap import dedent
 
-from git_agent_ratchet.hooks.no_duplicate_helpers import main
+from git_agent_ratchet.hooks.no_duplicate_helpers import _emit_duplicates, main
 
 
 def _write_py(path: Path, source: str) -> None:
@@ -116,3 +116,9 @@ def test_filenames_positional_args_are_ignored(tmp_path: Path) -> None:
     )
 
     assert exit_code == 0
+
+
+def test_emit_duplicates_renders_none_when_empty() -> None:
+    # Defensive branch: the failure-path formatter must produce a stable
+    # "(none)" string rather than crashing when the duplicate list is empty.
+    assert _emit_duplicates([]) == "  (none)"

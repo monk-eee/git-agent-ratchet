@@ -1,0 +1,73 @@
+name: Feature request / new ratchet
+description: Propose a new ratchet, a new chatter signature, or a CLI / config change.
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New ratchets are welcome. Before opening, check
+        [docs/spec.md](https://github.com/monk-eee/git-agent-ratchet/blob/main/docs/spec.md)
+        for the existing design contract, and
+        [docs/TODO.md](https://github.com/monk-eee/git-agent-ratchet/blob/main/docs/TODO.md)
+        for what is already planned.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of request
+      options:
+        - "New ratchet (whole new check)"
+        - "New chatter signature for Ratchet B"
+        - "CLI / config enhancement to an existing ratchet"
+        - "Documentation improvement"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: failure-mode
+    attributes:
+      label: Target failure mode
+      description: |
+        Describe the agent failure mode this change catches. Be concrete --
+        what does the bad commit look like? What soft rule is currently
+        being silently eroded?
+    validations:
+      required: true
+
+  - type: textarea
+    id: gate-rule
+    attributes:
+      label: Proposed gate rule
+      description: |
+        How would the ratchet decide pass / fail? What is the metric (count,
+        regex match, env signal, etc.)? Does it need a baseline?
+    validations:
+      required: true
+
+  - type: textarea
+    id: bypasses
+    attributes:
+      label: Forbidden bypasses
+      description: |
+        Per the HUMANS.md pattern, name the cheats an agent will reach for
+        if this rule is not enforced -- those need to be forbidden in the
+        AGENTS.md prose alongside the new gate.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Links, prior art, related issues, example agent transcripts.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I have searched existing issues and `docs/TODO.md`.
+          required: true
+        - label: I have read `docs/spec.md` (the design contract).
+          required: true

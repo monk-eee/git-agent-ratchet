@@ -1,0 +1,94 @@
+name: Bug report
+description: A ratchet behaved incorrectly, or the hooks themselves are broken.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please give us enough to reproduce the bug
+        without bouncing back to you. **Do not** report security
+        vulnerabilities here -- see SECURITY.md.
+
+  - type: input
+    id: version
+    attributes:
+      label: git-agent-ratchet version
+      description: Output of `uv run git-agent-ratchet --version` or the rev pinned in your `.pre-commit-config.yaml`.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12.4"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Ubuntu 22.04 / Windows 11 / macOS 14.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ratchet
+    attributes:
+      label: Which ratchet?
+      options:
+        - "Ratchet A (no-duplicate-helpers)"
+        - "Ratchet B (deny-agent-chatter)"
+        - "Ratchet C (anti-bypass)"
+        - "CLI dispatcher / baseline registry"
+        - "Pre-commit integration"
+        - "Other / not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did the ratchet do? What were you trying to commit?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: |
+        A copy-pasteable shell snippet, ideally producing the bug from a
+        clean directory. If the bug needs a multi-file fixture, link a
+        gist or a branch.
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Hook output / stack trace
+      render: text
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I have searched existing issues for this bug.
+          required: true
+        - label: I am on the latest release of `git-agent-ratchet`.
+          required: true
+        - label: This is not a security vulnerability (see SECURITY.md).
+          required: true

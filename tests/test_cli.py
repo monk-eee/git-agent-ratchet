@@ -80,3 +80,14 @@ def test_dispatch_to_anti_bypass_blocks_protected_mutation(monkeypatch) -> None:
     )
 
     assert exit_code == 1
+
+
+def test_module_entrypoint_runs_via_python_m(monkeypatch) -> None:
+    """`python -m git_agent_ratchet --version` executes the __main__ shim end-to-end."""
+    import runpy
+    import sys
+
+    monkeypatch.setattr(sys, "argv", ["git-agent-ratchet", "--version"])
+    with pytest.raises(SystemExit) as excinfo:
+        runpy.run_module("git_agent_ratchet", run_name="__main__")
+    assert excinfo.value.code == 0

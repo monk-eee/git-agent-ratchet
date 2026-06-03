@@ -32,6 +32,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.5",
     "pre-commit>=3.7",
+    "diff-cover>=9.0",
 ]
 
 [project.urls]
@@ -70,6 +71,7 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+fail_under = 95
 exclude_lines = [
     "pragma: no cover",
     "raise NotImplementedError",

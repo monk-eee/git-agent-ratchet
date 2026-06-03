@@ -1,6 +1,8 @@
 # git-agent-ratchet
 
 [![CI](https://github.com/monk-eee/git-agent-ratchet/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/monk-eee/git-agent-ratchet/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/monk-eee/git-agent-ratchet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/monk-eee/git-agent-ratchet/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/monk-eee/git-agent-ratchet/branch/main/graph/badge.svg)](https://codecov.io/gh/monk-eee/git-agent-ratchet)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/downloads/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)

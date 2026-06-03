@@ -8,6 +8,7 @@ from textwrap import dedent
 from git_agent_ratchet.ratchets.duplicate_helpers import (
     DEFAULT_EXCLUDE_DIRS,
     DuplicateHelper,
+    _relative_posix,
     collect_top_level_functions,
     is_private_helper,
     iter_python_files,
@@ -136,3 +137,18 @@ def test_scan_directory_is_idempotent(tmp_path: Path) -> None:
 def test_duplicate_helper_to_dict_shape() -> None:
     d = DuplicateHelper(name="_foo", occurrences=("a.py", "b.py"))
     assert d.to_dict() == {"name": "_foo", "occurrences": ["a.py", "b.py"]}
+
+
+def test_relative_posix_falls_back_when_path_outside_anchor(tmp_path: Path) -> None:
+    # When the path cannot be made relative to the anchor (different drives /
+    # unrelated trees), the helper returns the original path's posix form
+    # rather than crashing.
+    anchor = tmp_path / "anchor"
+    anchor.mkdir()
+    outside = tmp_path / "elsewhere" / "file.py"
+    outside.parent.mkdir()
+    outside.write_text("x = 1\n", encoding="utf-8")
+
+    result = _relative_posix(outside, anchor)
+
+    assert result.endswith("elsewhere/file.py")
