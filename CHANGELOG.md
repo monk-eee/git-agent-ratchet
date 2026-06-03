@@ -50,6 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEVELOPERS.md` "Known soft rules" no longer lists the 350-line
   per-file limit -- it is now mechanically enforced by Ratchet D.
 
+### Fixed
+- CI: `pre-commit` dogfood job now sets `SKIP=ratchet-anti-bypass`.
+  Ratchet C is a staged-set commit gate; `--all-files` mode fed every
+  protected file in the repo to it and tripped it unconditionally on
+  every run, blocking the build matrix. Anti-bypass continues to run
+  on developer machines at commit time, which is the only context
+  where the gate has meaning.
+
 ## [1.0.0] - 2026-06-03
 
 ### Added
