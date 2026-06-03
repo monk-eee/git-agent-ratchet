@@ -83,6 +83,7 @@ exclude_lines = [
 line-length = 100
 target-version = "py310"
 src = [".", "tests"]
+extend-exclude = ["examples"]
 
 [tool.ruff.lint]
 select = [

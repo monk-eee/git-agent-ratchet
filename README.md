@@ -150,6 +150,10 @@ cleanup commit extracts one duplicate into a shared module, swaps the
 callers, and the hook rewrites the baseline JSON with the smaller count
 and stages the diff into your commit.
 
+A minimal working layout lives in
+[examples/downstream/](examples/downstream/README.md) -- copy it, point
+`--dir` at your package, and seed.
+
 ---
 
 ## The three ratchets, in detail

@@ -30,14 +30,15 @@ Progress tracker, known gaps, and triage list.
 - [x] Pull request template + bug / feature issue templates
 - [x] Ratchet D (max-file-lines) -- scanner + hook + CLI + tests + dogfood
 - [x] PyPI publish workflow (trusted publisher, OIDC, environment `pypi`)
+- [x] Example downstream consumer layout under `examples/downstream/`
 
 ## Next
 
 - [ ] Tag v1.0.0 once CI is green end-to-end
-- [ ] Configure PyPI trusted publisher on pypi.org for `git-agent-ratchet`
+- [x] Configure PyPI trusted publisher on pypi.org for `git-agent-ratchet`
       (owner `monk-eee`, repo `git-agent-ratchet`, workflow `release.yml`,
       environment `pypi`) -- one-time, requires PyPI maintainer access
-- [ ] Example downstream consumer repo to validate the published manifest
+- [x] Example downstream consumer repo to validate the published manifest
 - [ ] Pluggable language support for Ratchet A (currently Python-only)
 - [ ] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
 - [ ] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet

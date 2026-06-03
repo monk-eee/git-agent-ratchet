@@ -1,0 +1,38 @@
+# Production-shape pre-commit config for a downstream consumer of
+# git-agent-ratchet. Pin `rev:` to a released tag in real use.
+#
+# This file is also exercised in-tree via `pre-commit try-repo .` from
+# the repository root (see ./README.md).
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/monk-eee/git-agent-ratchet
+    rev: v1.0.0
+    hooks:
+      - id: ratchet-no-duplicate-helpers
+        args:
+          - --baseline=config/ratchets/duplicates.json
+          - --dir=src
+
+      - id: ratchet-deny-agent-chatter
+        files: \.(py|md|txt|go|js|ts|rs|yaml|yml|toml)$
+
+      - id: ratchet-anti-bypass
+        args:
+          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json
+
+      - id: ratchet-max-file-lines
+        args:
+          - --baseline=config/ratchets/file_lines.json
+          - --dir=src
+          - --max=350
