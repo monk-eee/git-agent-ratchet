@@ -8,6 +8,8 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+from git_agent_ratchet.paths import relative_posix
+
 RATCHET_NAME = "duplicate_helpers"
 DEFAULT_EXCLUDE_DIRS = ("tests", "test")
 
@@ -68,7 +70,7 @@ def scan_directory(
         return []
     grouped: dict[str, set[str]] = defaultdict(set)
     for py_file in iter_python_files(root, exclude_dirs):
-        rel = _relative_posix(py_file, root.parent if root.parent.exists() else root)
+        rel = relative_posix(py_file, root.parent if root.parent.exists() else root)
         for fn_name in collect_top_level_functions(py_file):
             if is_private_helper(fn_name):
                 grouped[fn_name].add(rel)
@@ -79,14 +81,6 @@ def scan_directory(
     ]
     duplicates.sort(key=lambda d: d.name)
     return duplicates
-
-
-def _relative_posix(path: Path, anchor: Path) -> str:
-    try:
-        rel = path.resolve().relative_to(anchor.resolve())
-    except ValueError:
-        rel = path
-    return rel.as_posix()
 
 
 def metric_value(duplicates: list[DuplicateHelper]) -> int:

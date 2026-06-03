@@ -10,11 +10,12 @@ from git_agent_ratchet._version import __version__
 from git_agent_ratchet.cli import SUBCOMMANDS, main
 
 
-def test_subcommand_table_lists_all_three_ratchets() -> None:
+def test_subcommand_table_lists_all_four_ratchets() -> None:
     assert set(SUBCOMMANDS) == {
         "no-duplicate-helpers",
         "deny-agent-chatter",
         "anti-bypass",
+        "max-file-lines",
     }
 
 
@@ -91,3 +92,25 @@ def test_module_entrypoint_runs_via_python_m(monkeypatch) -> None:
     with pytest.raises(SystemExit) as excinfo:
         runpy.run_module("git_agent_ratchet", run_name="__main__")
     assert excinfo.value.code == 0
+
+
+def test_dispatch_to_max_file_lines_seeds_baseline(tmp_path: Path) -> None:
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "a.py").write_text("\n".join(f"x = {i}" for i in range(20)) + "\n", encoding="utf-8")
+    baseline = tmp_path / "file_lines.json"
+
+    exit_code = main(
+        [
+            "max-file-lines",
+            "--baseline",
+            str(baseline),
+            "--dir",
+            str(pkg),
+            "--max",
+            "350",
+        ]
+    )
+
+    assert exit_code == 0
+    assert baseline.exists()

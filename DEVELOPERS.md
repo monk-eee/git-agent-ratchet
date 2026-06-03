@@ -75,8 +75,6 @@ the safety net, not the first line of defence.
 Rules in [AGENTS.md](AGENTS.md) that are *not* mechanically enforced yet --
 listed here so the gap is public and the next gate is easy to spot.
 
-- **Max 350 lines per file.** Enforced by review only. Add a ratchet if it
-  becomes a recurring miss.
 - **`logging.getLogger(__name__)` over `print()`.** The hooks themselves
   use `print(..., file=sys.stderr)` deliberately (so pre-commit surfaces
   failure output directly); nothing yet stops a new module from using

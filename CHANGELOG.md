@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Ratchet D -- `ratchet-max-file-lines`.** Per-file Python line-count
+  ratchet. Records the total overage across all files larger than `--max`
+  (default 350) in a separate baseline; metric is allowed to shrink, never
+  grow. New scanner module
+  `git_agent_ratchet/ratchets/max_file_lines.py`, hook entry
+  `git_agent_ratchet/hooks/max_file_lines.py`, console script
+  `ratchet-max-file-lines`, `max-file-lines` subcommand on the unified CLI.
+  25 new tests; total suite now 102 tests at 100% line + branch coverage.
+- GitHub Actions release workflow (`.github/workflows/release.yml`) that
+  builds the sdist + wheel on every `v*` tag and publishes to PyPI via
+  trusted-publisher OIDC (no long-lived token in the repo). Requires
+  one-time PyPI-side publisher configuration documented in the workflow.
 - 100% line + branch coverage (`fail_under = 95` in `pyproject.toml`).
 - Codecov upload on `ubuntu-latest` + Python 3.12 (`codecov/codecov-action@v4`).
 - `diff-cover` PR gate: PR-changed lines must be >= 80% covered.
@@ -19,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - README now displays Codecov coverage badge.
+- README, downstream `.pre-commit-hooks.yaml`, and the CLI all advertise
+  four ratchets instead of three.
+- `DEVELOPERS.md` "Known soft rules" no longer lists the 350-line
+  per-file limit -- it is now mechanically enforced by Ratchet D.
 
 ## [1.0.0] - 2026-06-03
 

@@ -149,6 +149,27 @@ files to force its broken commit to pass.
    origin branches. If modifications to the ratchet engine itself were authored
    by the automated agent process, the tool forces an immutable system abort.
 
+### 3.4 Ratchet D: Per-File Line-Count Ratchet
+
+**Target Failure Mode:** Agents grow modules instead of splitting them. The 350-
+line soft rule in `AGENTS.md` is the first casualty of a long refactor session:
+each turn adds "just one more helper", the file passes 400 lines, then 600, then
+nobody can read it any more.
+
+**Programmatic Execution Mechanics:**
+
+1. The hook walks the directory tree supplied by `--dir`, skipping the path
+   segments listed by `--exclude` (default: `tests`, `test`).
+2. For every `.py` file it counts the lines (`len(text.splitlines())`) and
+   records any file whose count exceeds `--max` (default: 350) as an
+   `OversizedFile(path, line_count, overage)`.
+3. The metric tracked in the baseline is the sum of all per-file overages.
+4. **The Gate Rule:** If the current total overage exceeds the recorded value
+   in the baseline file, the hook exits with exit code `1`, printing the
+   per-file diagnostic to stderr. If the value is lower, the hook rewrites the
+   baseline to the smaller number and stages the change. If equal, exit `0`
+   silently. If no baseline exists yet, seed it and exit `0`.
+
 ---
 
 ## 4. The Markdown Connection Layout

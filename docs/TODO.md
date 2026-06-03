@@ -28,13 +28,16 @@ Progress tracker, known gaps, and triage list.
 - [x] SECURITY.md (private vulnerability reporting + threat model)
 - [x] CHANGELOG.md (Keep a Changelog format)
 - [x] Pull request template + bug / feature issue templates
+- [x] Ratchet D (max-file-lines) -- scanner + hook + CLI + tests + dogfood
+- [x] PyPI publish workflow (trusted publisher, OIDC, environment `pypi`)
 
 ## Next
 
 - [ ] Tag v1.0.0 once CI is green end-to-end
-- [ ] PyPI publish workflow (trusted publisher)
+- [ ] Configure PyPI trusted publisher on pypi.org for `git-agent-ratchet`
+      (owner `monk-eee`, repo `git-agent-ratchet`, workflow `release.yml`,
+      environment `pypi`) -- one-time, requires PyPI maintainer access
 - [ ] Example downstream consumer repo to validate the published manifest
-- [ ] Add a `--max-file-lines` ratchet to enforce the 350-line soft rule
 - [ ] Pluggable language support for Ratchet A (currently Python-only)
 - [ ] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
 - [ ] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet

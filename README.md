@@ -13,7 +13,7 @@
 > The rule didn't change. The cost of breaking it did.
 
 A pre-commit hook pack that turns the polite suggestions in your `AGENTS.md`
-into deterministic gates at commit time. Three small, ugly, single-purpose
+into deterministic gates at commit time. Four small, ugly, single-purpose
 scripts. They do not get clever. They just fail loudly when an agent does
 the thing your file already told it not to do.
 
@@ -25,8 +25,10 @@ the thing your file already told it not to do.
 - **Ratchet C** -- `anti-bypass`. If a mutation lands on a protected
   ratchet config file without `HUMAN_RATCHET_BYPASS_KEY` in the environment,
   the commit dies.
+- **Ratchet D** -- `max-file-lines`. Per-file line counts may not grow
+  past their recorded baseline. Split, don't sprawl.
 
-The package itself runs all three of these against itself on every commit.
+The package itself runs all four of these against itself on every commit.
 If our own hooks fail on our own code, the change is wrong. That's the test.
 
 ---
@@ -126,7 +128,12 @@ repos:
         files: \.(py|md|txt|go|js|ts|rs)$
       - id: ratchet-anti-bypass
         args:
-          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json
+          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json
+      - id: ratchet-max-file-lines
+        args:
+          - --baseline=config/ratchets/file_lines.json
+          - --dir=src/
+          - --max=350
 ```
 
 Then:
@@ -233,6 +240,36 @@ its broken commit to pass. The rule itself becomes the attack surface.
 **Important.** Ratchet C never logs the bypass key value, only its
 presence. The CI suite asserts this.
 
+### Ratchet D -- `ratchet-max-file-lines`
+
+**Target failure mode.** Agents grow a single module instead of splitting
+it. The 350-line soft rule in your `AGENTS.md` is the first casualty of a
+five-turn refactor session: each turn adds "just one more helper", the
+file passes 400 lines, then 600, then nobody can read it any more.
+
+**What it does.** Walks the directory you point at with `--dir`, counts
+the lines of every `.py` file, and records any file whose count exceeds
+`--max` (default 350) in the baseline. The metric is the total overage
+across all over-sized files. The baseline shrinks when you split a file
+or contract one; it is structurally barred from growing.
+
+**Gate rule.**
+- Current overage > baseline -> exit 1 with the per-file diagnostic on
+  stderr.
+- Current overage < baseline -> rewrite the baseline JSON, save it,
+  exit 0. Pre-commit re-stages the file automatically.
+- Current overage = baseline -> exit 0.
+- No baseline yet -> seed the file, exit 0.
+
+**Args.**
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--baseline` | `config/ratchets/file_lines.json` | Path to the JSON registry. |
+| `--dir` | `src` | Directory to scan. |
+| `--max` | `350` | Per-file line-count limit. |
+| `--exclude` | `tests`, `test` | Repeatable. Path-segment names to skip. |
+
 ---
 
 ## The baseline registry
@@ -288,6 +325,12 @@ git-agent-ratchet deny-agent-chatter path/to/file.py path/to/other.md
 git-agent-ratchet anti-bypass \
     --enforce-files AGENTS.md,.pre-commit-config.yaml \
     AGENTS.md
+
+# Ratchet D
+git-agent-ratchet max-file-lines \
+    --dir src \
+    --max 350 \
+    --baseline config/ratchets/file_lines.json
 ```
 
 Each subcommand prints the decision it made and why. There is no `--quiet`
@@ -373,13 +416,15 @@ the audiences answer different questions.
 Ratchet A's AST scan is `O(files)` over your source tree and runs in
 sub-second time on packages up to a few thousand modules. Ratchet B is a
 regex pass over the staged set, capped at whatever pre-commit hands it.
-Ratchet C is a string compare. None of them call out over the network.
+Ratchet C is a string compare. Ratchet D is a line-count pass. None of
+them call out over the network.
 
 **Does it work with Husky / lefthook / native git hooks instead of pre-commit?**
 The console scripts (`ratchet-no-duplicate-helpers`,
-`ratchet-deny-agent-chatter`, `ratchet-anti-bypass`) and the unified
-`git-agent-ratchet` CLI are pure Python and have no `pre-commit` dependency
-at runtime. Wire them into any hook runner that can execute a Python
+`ratchet-deny-agent-chatter`, `ratchet-anti-bypass`,
+`ratchet-max-file-lines`) and the unified `git-agent-ratchet` CLI are
+pure Python and have no `pre-commit` dependency at runtime. Wire them
+into any hook runner that can execute a Python
 console script. The bundled `.pre-commit-hooks.yaml` is provided because
 that's the most common deployment, not because it's the only one.
 

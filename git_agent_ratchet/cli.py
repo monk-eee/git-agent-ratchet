@@ -6,12 +6,18 @@ import argparse
 from collections.abc import Sequence
 
 from git_agent_ratchet._version import __version__
-from git_agent_ratchet.hooks import anti_bypass, deny_agent_chatter, no_duplicate_helpers
+from git_agent_ratchet.hooks import (
+    anti_bypass,
+    deny_agent_chatter,
+    max_file_lines,
+    no_duplicate_helpers,
+)
 
 SUBCOMMANDS = {
     "no-duplicate-helpers": no_duplicate_helpers.main,
     "deny-agent-chatter": deny_agent_chatter.main,
     "anti-bypass": anti_bypass.main,
+    "max-file-lines": max_file_lines.main,
 }
 
 
