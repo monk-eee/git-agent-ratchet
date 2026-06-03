@@ -1,0 +1,30 @@
+- id: ratchet-no-duplicate-helpers
+  name: git-agent-ratchet | no duplicate private helpers
+  description: >-
+    Fail when the count of duplicate private helper functions across the target
+    directory exceeds the recorded baseline. Auto-shrinks the baseline on cleanup.
+  entry: ratchet-no-duplicate-helpers
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit, manual]
+
+- id: ratchet-deny-agent-chatter
+  name: git-agent-ratchet | deny agent chatter
+  description: >-
+    Block conversational agent preamble and postscript artifacts from being
+    committed to text files.
+  entry: ratchet-deny-agent-chatter
+  language: python
+  types: [text]
+  stages: [pre-commit, manual]
+
+- id: ratchet-anti-bypass
+  name: git-agent-ratchet | anti-bypass guard
+  description: >-
+    Block automated processes from mutating protected ratchet configuration files
+    unless HUMAN_RATCHET_BYPASS_KEY is set in the environment.
+  entry: ratchet-anti-bypass
+  language: python
+  pass_filenames: true
+  stages: [pre-commit, manual]

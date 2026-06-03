@@ -1,0 +1,22 @@
+# Enforce LF in the repo for all text files. Windows checkouts can still
+# render with CRLF locally if core.autocrlf is set, but what's committed
+# is always LF -- otherwise the mixed-line-endings pre-commit hook will
+# auto-fix every commit forever.
+
+* text=auto eol=lf
+
+# Binary / generated files that should not be touched.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.tar   binary
+*.whl   binary
+
+# Lockfile is generated; keep it LF.
+uv.lock text eol=lf
