@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-03
+
 ### Added
 - **Multi-language support for Ratchet A.** Duplicate-helper detection
   now scans TypeScript / JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`,
