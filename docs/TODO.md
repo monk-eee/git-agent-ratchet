@@ -41,7 +41,7 @@ Progress tracker, known gaps, and triage list.
 - [x] Example downstream consumer repo to validate the published manifest
 - [ ] Pluggable language support for Ratchet A (currently Python-only)
 - [ ] Enable GitHub Discussions (referenced from ISSUE_TEMPLATE/config.yml)
-- [ ] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet
+- [x] Configure Codecov repo secret `CODECOV_TOKEN` on monk-eee/git-agent-ratchet
 
 ## Known soft rules
 
