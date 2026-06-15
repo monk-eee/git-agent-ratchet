@@ -14,7 +14,7 @@
 > The rule didn't change. The cost of breaking it did.
 
 A pre-commit hook pack that turns the polite suggestions in your `AGENTS.md`
-into deterministic gates at commit time. Four small, ugly, single-purpose
+into deterministic gates at commit time. Seven small, ugly, single-purpose
 scripts. They do not get clever. They just fail loudly when an agent does
 the thing your file already told it not to do.
 
@@ -29,8 +29,17 @@ the thing your file already told it not to do.
   the commit dies.
 - **Ratchet D** -- `max-file-lines`. Per-file line counts may not grow
   past their recorded baseline. Split, don't sprawl.
+- **Ratchet E** -- `no-cross-module-private-imports`. AST scan. Importing
+  an underscore-prefixed name from another module (`from pkg.mod import
+  _helper`) breaks the privacy contract and is barred from growing.
+- **Ratchet F** -- `no-print-outside-allowlist`. AST scan. `print(...)`
+  calls in production modules graduate to `logging.getLogger(__name__)`;
+  shims that must write to stderr are allowlisted by path prefix.
+- **Ratchet G** -- `no-temporary-comments`. Cross-language regex scan.
+  Expedient-path markers (`for now`, `back-compat`, `transitional bridge`,
+  `TODO: remove once X migrates`) cannot ride into a commit.
 
-The package itself runs all four of these against itself on every commit.
+The package itself runs all seven of these against itself on every commit.
 If our own hooks fail on our own code, the change is wrong. That's the test.
 
 ---
@@ -131,12 +140,25 @@ repos:
         files: \.(py|md|txt|go|js|ts|rs)$
       - id: ratchet-anti-bypass
         args:
-          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json
+          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json,config/ratchets/private_imports.json,config/ratchets/print_calls.json,config/ratchets/temporary_comments.json
       - id: ratchet-max-file-lines
         args:
           - --baseline=config/ratchets/file_lines.json
           - --dir=src/
           - --max=350
+      - id: ratchet-no-cross-module-private-import
+        args:
+          - --baseline=config/ratchets/private_imports.json
+          - --dir=src/
+      - id: ratchet-no-print-outside-allowlist
+        args:
+          - --baseline=config/ratchets/print_calls.json
+          - --dir=src/
+          - --allow-prefix=src/cli.py
+      - id: ratchet-no-temporary-comments
+        args:
+          - --baseline=config/ratchets/temporary_comments.json
+          - --dir=src/
 ```
 
 Then:
@@ -159,7 +181,7 @@ A minimal working layout lives in
 
 ---
 
-## The four ratchets, in detail
+## The seven ratchets, in detail
 
 ### Ratchet A -- `ratchet-no-duplicate-helpers`
 
@@ -289,6 +311,108 @@ or contract one; it is structurally barred from growing.
 | `--max` | `350` | Per-file line-count limit. |
 | `--exclude` | `tests`, `test` | Repeatable. Path-segment names to skip. |
 
+### Ratchet E -- `ratchet-no-cross-module-private-import`
+
+**Target failure mode.** Agents reach into another module and import a
+name starting with an underscore (`from pkg.helpers import _normalise`).
+The leading underscore is the Python convention for *module-private* --
+importing it across module boundaries silently couples the consumer to
+an implementation detail the author is free to rename or delete. By the
+fifth such import the "check the public API first" rule is gone.
+
+**What it does.** Walks the directory you point at with `--dir`,
+AST-parses every `.py` file, and flags any `from x import _y` or
+`import x._y` where `_y` is underscore-prefixed (dunders like
+`__init__` are ignored). Relative imports (`from . import _helper`)
+stay inside the package and are not flagged. The number of violations
+is the metric.
+
+**Gate rule.**
+- Current count > baseline -> exit 1 with file/line/name/source-module
+  on stderr.
+- Current count < baseline -> rewrite the baseline JSON, exit 0.
+- Current count = baseline -> exit 0.
+- No baseline yet -> seed the file, exit 0.
+
+**Args.**
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--baseline` | `config/ratchets/private_imports.json` | Path to the JSON registry. |
+| `--dir` | `src` | Directory to scan. |
+| `--exclude` | `tests`, `test` | Repeatable. Path-segment names to skip. |
+
+### Ratchet F -- `ratchet-no-print-outside-allowlist`
+
+**Target failure mode.** The AGENTS.md "use `logging.getLogger(__name__)`,
+not `print()`" rule is the first soft rule to slip during a debug
+session. The agent adds a `print(...)` to trace one variable, the
+session ends, the print lands in the commit, and the diagnostic noise
+outlives the bug.
+
+**What it does.** AST-scans every `.py` file under `--dir` for
+`Call(func=Name("print"))` -- the literal `print(...)` expression. The
+word "print" in strings, comments, and docstrings is ignored. Modules
+that *must* write to stderr (hook entry-point shims, CLI dispatchers)
+are allowlisted by path prefix via repeatable `--allow-prefix`. The
+number of remaining calls is the metric.
+
+**Gate rule.**
+- Current count > baseline -> exit 1 with file/line/col on stderr.
+- Current count < baseline -> rewrite the baseline JSON, exit 0.
+- Current count = baseline -> exit 0.
+- No baseline yet -> seed the file, exit 0.
+
+**Args.**
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--baseline` | `config/ratchets/print_calls.json` | Path to the JSON registry. |
+| `--dir` | `src` | Directory to scan. |
+| `--allow-prefix` | (none) | Repeatable. Path prefix (repo-relative, posix) whose files may keep using `print()`. Typical use: `--allow-prefix=src/cli.py --allow-prefix=src/hooks`. |
+| `--exclude` | `tests`, `test` | Repeatable. Path-segment names to skip. |
+
+### Ratchet G -- `ratchet-no-temporary-comments`
+
+**Target failure mode.** The expedient-path comment that documents its
+own calcification: `# TODO: remove once X migrates`, `// for now, fall
+back to legacy`, `/* transitional bridge -- delete after release */`,
+`# HACK: fix later`. The TODO never gets resolved. The bridge becomes
+load-bearing. The next agent reads the comment, infers the shim is
+supported policy, and adds another one.
+
+**What it does.** Cross-language regex scan over every file pre-commit
+hands it (default extensions: `.py`, `.ts`, `.tsx`, `.js`, `.jsx`,
+`.cs`, `.go`, `.rs`, `.java`, `.kt`). Five signatures live in
+`TEMPORARY_SIGNATURES`:
+
+| Label | Catches |
+| --- | --- |
+| `for-now` | `# just for now, return the cached value` |
+| `back-compat` | `// back-compat shim until v2` <!-- ratchet-allow: temporary_comments --> |
+| `transitional-bridge` | `// transitional bridge -- delete after release` <!-- ratchet-allow: temporary_comments --> |
+| `todo-remove-once` | `# TODO: remove once profile-svc migrates` <!-- ratchet-allow: temporary_comments --> |
+| `hack-fix-later` | `// HACK: fix later, broken on Windows` <!-- ratchet-allow: temporary_comments --> |
+
+Lines may opt out individually with a trailing
+`# ratchet-allow: temporary_comments` marker (or the language-appropriate
+comment syntax). The unmarked match count is the metric.
+
+**Gate rule.**
+- Current count > baseline -> exit 1 with file/line/label/snippet on
+  stderr.
+- Current count < baseline -> rewrite the baseline JSON, exit 0.
+- Current count = baseline -> exit 0.
+- No baseline yet -> seed the file, exit 0.
+
+**Args.**
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--baseline` | `config/ratchets/temporary_comments.json` | Path to the JSON registry. |
+| `--dir` | `src` | Directory to scan. |
+| `--exclude` | `tests`, `test`, `node_modules`, `.venv`, `venv`, `dist`, `build` | Repeatable. Path-segment names to skip. |
+
 ---
 
 ## The baseline registry
@@ -350,6 +474,22 @@ git-agent-ratchet max-file-lines \
     --dir src \
     --max 350 \
     --baseline config/ratchets/file_lines.json
+
+# Ratchet E
+git-agent-ratchet no-cross-module-private-import \
+    --dir src \
+    --baseline config/ratchets/private_imports.json
+
+# Ratchet F (allowlist CLI shims)
+git-agent-ratchet no-print-outside-allowlist \
+    --dir src \
+    --allow-prefix src/cli.py \
+    --baseline config/ratchets/print_calls.json
+
+# Ratchet G
+git-agent-ratchet no-temporary-comments \
+    --dir src \
+    --baseline config/ratchets/temporary_comments.json
 ```
 
 Each subcommand prints the decision it made and why. There is no `--quiet`
@@ -409,7 +549,7 @@ make test-cov               # with coverage
 make lint                   # ruff check + ruff format --check
 make format                 # ruff check --fix + ruff format
 
-# Dogfood: run all four ratchets against this repo
+# Dogfood: run all seven ratchets against this repo
 make ratchet
 ```
 
@@ -435,17 +575,20 @@ the audiences answer different questions.
 Ratchet A's AST scan is `O(files)` over your source tree and runs in
 sub-second time on packages up to a few thousand modules. Ratchet B is a
 regex pass over the staged set, capped at whatever pre-commit hands it.
-Ratchet C is a string compare. Ratchet D is a line-count pass. None of
-them call out over the network.
+Ratchet C is a string compare. Ratchet D is a line-count pass. Ratchets
+E, F, and G are the same shape: AST or regex pass over the same tree.
+None of them call out over the network.
 
 **Does it work with Husky / lefthook / native git hooks instead of pre-commit?**
 The console scripts (`ratchet-no-duplicate-helpers`,
 `ratchet-deny-agent-chatter`, `ratchet-anti-bypass`,
-`ratchet-max-file-lines`) and the unified `git-agent-ratchet` CLI are
-pure Python and have no `pre-commit` dependency at runtime. Wire them
-into any hook runner that can execute a Python
-console script. The bundled `.pre-commit-hooks.yaml` is provided because
-that's the most common deployment, not because it's the only one.
+`ratchet-max-file-lines`, `ratchet-no-cross-module-private-import`,
+`ratchet-no-print-outside-allowlist`, `ratchet-no-temporary-comments`)
+and the unified `git-agent-ratchet` CLI are pure Python and have no
+`pre-commit` dependency at runtime. Wire them into any hook runner that
+can execute a Python console script. The bundled `.pre-commit-hooks.yaml`
+is provided because that's the most common deployment, not because it's
+the only one.
 
 **What if I really do need an exception?**
 You are a human. Export `HUMAN_RATCHET_BYPASS_KEY=<anything-non-empty>`

@@ -59,7 +59,7 @@ def test_iter_python_files_skips_excluded_dirs(tmp_path: Path) -> None:
     _write(pkg / "real.py", 3)
     _write(pkg / "tests" / "test_real.py", 3)
 
-    found = {p.name for p in iter_python_files(pkg)}
+    found = {p.name for p in iter_python_files(pkg, exclude_dirs=DEFAULT_EXCLUDE_DIRS)}
 
     assert "real.py" in found
     assert "test_real.py" not in found

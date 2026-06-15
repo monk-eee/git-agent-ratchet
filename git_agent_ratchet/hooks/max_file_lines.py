@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from git_agent_ratchet.baseline import Baseline
+from git_agent_ratchet.hooks.gate import run_ratchet_gate
 from git_agent_ratchet.ratchets.max_file_lines import (
     DEFAULT_MAX_LINES,
     RATCHET_NAME,
@@ -75,26 +74,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     exclude = tuple(args.exclude) if args.exclude else ("tests", "test")
     oversized = scan_directory(args.directory, max_lines=args.max_lines, exclude_dirs=exclude)
-    current = metric_value(oversized)
 
-    baseline = Baseline.load(args.baseline)
-    recorded = baseline.get_metric(RATCHET_NAME)
-
-    if recorded is None:
-        baseline.set_entry(
-            name=RATCHET_NAME,
-            metric_value=current,
-            items=[f.to_dict() for f in oversized],
-        )
-        baseline.save()
-        print(
-            f"[ratchet] {RATCHET_NAME}: seeded baseline at {args.baseline} "
-            f"(metric_value={current})."
-        )
-        return 0
-
-    if current > recorded:
-        print(
+    def trip_message(recorded: int, current: int) -> str:
+        return (
             f"[ratchet] {RATCHET_NAME}: GATE TRIPPED.\n"
             f"  baseline overage = {recorded}\n"
             f"  current  overage = {current}\n"
@@ -103,25 +85,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{_emit_oversized(oversized, args.max_lines)}\n"
             f"  Rule: per-file line counts may not grow past their recorded baseline.\n"
             f"  Fix: split the file into focused modules, or extract a helper into "
-            f"an existing module that already owns the concept.",
-            file=sys.stderr,
+            f"an existing module that already owns the concept."
         )
-        return 1
 
-    if current < recorded:
-        baseline.set_entry(
-            name=RATCHET_NAME,
-            metric_value=current,
-            items=[f.to_dict() for f in oversized],
-        )
-        baseline.save()
-        print(
-            f"[ratchet] {RATCHET_NAME}: baseline ratcheted down "
-            f"({recorded} -> {current}); registry restaged."
-        )
-        return 0
-
-    return 0
+    return run_ratchet_gate(
+        ratchet_name=RATCHET_NAME,
+        baseline_path=args.baseline,
+        current=metric_value(oversized),
+        items=oversized,
+        trip_message=trip_message,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover

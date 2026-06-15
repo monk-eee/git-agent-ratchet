@@ -46,7 +46,7 @@ repos:
         name: ratchet | anti-bypass guard
         entry: uv run git-agent-ratchet anti-bypass
         args:
-          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json,.pre-commit-hooks.yaml
+          - --enforce-files=AGENTS.md,.pre-commit-config.yaml,config/ratchets/duplicates.json,config/ratchets/file_lines.json,config/ratchets/private_imports.json,config/ratchets/print_calls.json,config/ratchets/temporary_comments.json,.pre-commit-hooks.yaml
         language: system
         pass_filenames: true
 
@@ -57,6 +57,38 @@ repos:
           - --baseline=config/ratchets/file_lines.json
           - --dir=git_agent_ratchet
           - --max=350
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ratchet-no-cross-module-private-import
+        name: ratchet | no cross-module private imports
+        entry: uv run git-agent-ratchet no-cross-module-private-import
+        args:
+          - --baseline=config/ratchets/private_imports.json
+          - --dir=git_agent_ratchet
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ratchet-no-print-outside-allowlist
+        name: ratchet | no print() outside allowlist
+        entry: uv run git-agent-ratchet no-print-outside-allowlist
+        args:
+          - --baseline=config/ratchets/print_calls.json
+          - --dir=git_agent_ratchet
+          - --allow-prefix=git_agent_ratchet/hooks
+          - --allow-prefix=git_agent_ratchet/cli.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ratchet-no-temporary-comments
+        name: ratchet | no temporary-comment markers
+        entry: uv run git-agent-ratchet no-temporary-comments
+        args:
+          - --baseline=config/ratchets/temporary_comments.json
+          - --dir=git_agent_ratchet
         language: system
         pass_filenames: false
         always_run: true

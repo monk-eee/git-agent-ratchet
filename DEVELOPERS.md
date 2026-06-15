@@ -62,6 +62,9 @@ tests/                    # pytest suite
 | No agent chatter in committed text | `ratchet-deny-agent-chatter` |
 | No agent-driven mutation of ratchet config | `ratchet-anti-bypass` |
 | Per-file line count <= 350 (sum of overages) | `ratchet-max-file-lines` |
+| No cross-module imports of `_private` names | `ratchet-no-cross-module-private-import` |
+| No `print()` outside allowlisted shims (use `logging`) | `ratchet-no-print-outside-allowlist` |
+| No expedient-path comment markers | `ratchet-no-temporary-comments` |
 | Lint + format clean | `ruff check` + `ruff format --check` |
 | Hygiene (EOF, whitespace, line endings, merge markers, large files) | `pre-commit-hooks` |
 | Tests pass on Linux / Windows / macOS x 3.10 / 3.11 / 3.12 | GitHub Actions `test` matrix |
@@ -76,10 +79,6 @@ the safety net, not the first line of defence.
 Rules in [AGENTS.md](AGENTS.md) that are *not* mechanically enforced yet --
 listed here so the gap is public and the next gate is easy to spot.
 
-- **`logging.getLogger(__name__)` over `print()`.** The hooks themselves
-  use `print(..., file=sys.stderr)` deliberately (so pre-commit surfaces
-  failure output directly); nothing yet stops a new module from using
-  bare `print()` for diagnostics.
 - **Regression test required per bug fix.** Honour system; reviewed in PRs.
 
 When a soft rule fires twice in production, it graduates to a mechanical

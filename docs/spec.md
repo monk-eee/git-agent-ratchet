@@ -60,6 +60,12 @@ repos:
         args: [--enforce-files=AGENTS.md,.pre-commit-config.yaml]
       - id: ratchet-max-file-lines
         args: [--baseline=config/ratchets/file_lines.json, --dir=src/, --max=350]
+      - id: ratchet-no-cross-module-private-import
+        args: [--baseline=config/ratchets/private_imports.json, --dir=src/]
+      - id: ratchet-no-print-outside-allowlist
+        args: [--baseline=config/ratchets/print_calls.json, --dir=src/, --allow-prefix=src/cli.py]
+      - id: ratchet-no-temporary-comments
+        args: [--baseline=config/ratchets/temporary_comments.json, --dir=src/]
 ```
 
 ### 2.2 The Unified Baseline Registry Format
@@ -183,6 +189,91 @@ nobody can read it any more.
    per-file diagnostic to stderr. If the value is lower, the hook rewrites the
    baseline to the smaller number and stages the change. If equal, exit `0`
    silently. If no baseline exists yet, seed it and exit `0`.
+
+### 3.5 Ratchet E: Cross-Module Private Import Detection
+
+**Target Failure Mode:** Agents reach into another module's private namespace,
+e.g. `from pkg.helpers import _normalise_path`. The leading underscore is the
+Python convention for *module-private*; importing such a name across module
+boundaries silently couples consumers to an implementation detail the author is
+free to rename or delete, defeating the privacy contract that the leading
+underscore was supposed to encode.
+
+**Programmatic Execution Mechanics:**
+
+1. The hook walks the directory tree supplied by `--dir`, skipping path
+   segments listed by `--exclude` (default: `tests`, `test`).
+2. For every `.py` file it parses the AST and walks `ast.ImportFrom` and
+   `ast.Import` nodes. Any imported name (alias) whose identifier starts
+   with `_` and is not a dunder (`__init__`, `__main__`) is recorded as a
+   `PrivateImport(file, line, name, source_module)`.
+3. **Relative imports are ignored.** `from . import _helper` and `from .util
+   import _x` stay inside the package and are considered the author's
+   prerogative. Only absolute imports trigger the gate.
+4. The metric tracked in the baseline is the count of violations.
+5. **The Gate Rule:** Same shape as Ratchet A / D -- grow -> exit 1 with the
+   per-violation report; shrink -> rewrite baseline and stage; equal -> exit
+   0 silently; missing baseline -> seed and exit 0.
+
+### 3.6 Ratchet F: Print-Call Allowlist
+
+**Target Failure Mode:** The `AGENTS.md` "use `logging.getLogger(__name__)`,
+not `print()`" rule is the first soft rule to slip during a debug session. The
+agent adds a `print(...)` to trace one variable, the session ends, the print
+lands in the commit, and the diagnostic noise outlives the bug.
+
+**Programmatic Execution Mechanics:**
+
+1. The hook walks the directory tree supplied by `--dir`, skipping path
+   segments listed by `--exclude` (default: `tests`, `test`).
+2. For every `.py` file it parses the AST and walks `ast.Call` nodes. Any
+   `Call(func=Name("print"))` -- the literal `print(...)` expression -- is
+   recorded as a `PrintCall(file, line, col)`. The word "print" appearing
+   in strings, comments, or docstrings is ignored.
+3. **Path-prefix allowlist.** Modules that must legitimately write to stderr
+   (hook entry-point shims, CLI dispatchers) are allowlisted by path prefix
+   via repeatable `--allow-prefix`. A file whose repo-relative posix path
+   starts with any allowed prefix is skipped wholesale.
+4. The metric tracked in the baseline is the count of non-allowlisted
+   `print()` calls.
+5. **The Gate Rule:** Same shape as Ratchet A / D / E. Grow -> exit 1 with
+   the per-call diagnostic; shrink -> rewrite baseline; equal -> silent
+   pass; missing -> seed and pass.
+
+### 3.7 Ratchet G: Temporary-Comment Marker Detection
+
+**Target Failure Mode:** The expedient-path comment that documents its own
+calcification: `# TODO: remove once X migrates`, `// for now, fall back to
+legacy`, `/* transitional bridge -- delete after release */`, `# HACK: fix
+later`. The TODO never gets resolved. The bridge becomes load-bearing. The
+next agent reads the comment, infers the shim is supported policy, and adds
+another one. The mechanical gate is *not* "ban TODO comments" -- it is "the
+count of these specific narrowly-defined expedient markers may not grow."
+
+**Programmatic Execution Mechanics:**
+
+1. The hook walks the directory tree supplied by `--dir`, skipping path
+   segments listed by `--exclude` (default includes `tests`, `node_modules`,
+   `dist`, etc.).
+2. For every file whose extension is in `DEFAULT_EXTENSIONS` (`.py`, `.ts`,
+   `.tsx`, `.js`, `.jsx`, `.cs`, `.go`, `.rs`, `.java`, `.kt`), it scans
+   line-by-line against `TEMPORARY_SIGNATURES`, a tuple of (label, regex)
+   pairs:
+
+   | Label | Regex (case-insensitive) |
+   | --- | --- |
+   | `for-now` | `(?<![A-Za-z0-9_])(just\s+)?for\s+now(?![A-Za-z0-9_])` |
+   | `back-compat` | `(?<![A-Za-z0-9_])back[-\s]?compat(ibility)?(?![A-Za-z0-9_])` |
+   | `transitional-bridge` | `(?<![A-Za-z0-9_])(transitional\s+bridge\|temporary\s+bridge)(?![A-Za-z0-9_])` |
+   | `todo-remove-once` | `todo:?\s*remove\s+(once\|when\|after)\b` |
+   | `hack-fix-later` | `(?<![A-Za-z0-9_])(hack\|hacky)[:\s].*?(fix\s+later\|temporary)(?![A-Za-z0-9_])` |
+
+3. **Per-line allow marker.** A line containing the literal
+   `ratchet-allow: temporary_comments` (typically embedded in a comment)
+   opts that single line out of the gate.
+4. The metric tracked in the baseline is the count of non-allowlisted
+   matches.
+5. **The Gate Rule:** Same shape as Ratchet A / D / E / F.
 
 ---
 
