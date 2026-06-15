@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+- Codified the **anti-rot contract** that governs when a rule earns a
+  ratchet. README gains a "When does a rule earn a ratchet (and how this
+  avoids rot)" section and `docs/spec.md` gains section 4 "When a Rule
+  Earns a Ratchet (Anti-Rot Contract)": the four-bar test for debt
+  ratchets (fires often / silent in review / pays down through normal work
+  / cheap early-expensive late), the debt-ratchet vs invariant-gate
+  distinction, and the shrink-only / loud-by-default / retirement
+  properties that keep a ratchet from degenerating into a sinecure.
+
 ## [1.2.0] - 2026-06-15
 
 ### Added

@@ -450,6 +450,90 @@ it.
 
 ---
 
+## When does a rule earn a ratchet (and how this avoids rot)
+
+The honest criticism of any ratchet system is that it becomes a
+**sinecure**: a gate that runs on every commit, shows green in CI, *feels*
+like governance -- but never changes anyone's behaviour and never gets
+paid down. It draws a salary for no work. If you cannot answer that
+criticism, the skeptic is right to delete the hook.
+
+This project answers it two ways: a **high bar for what earns a ratchet**,
+and a recognition that there are **two kinds of ratchet**, judged on
+different axes. Both are deliberate. A rule that cannot clear the bar stays
+prose in your `AGENTS.md`, or goes to your linter. It does not get a hook.
+
+### The four-bar test (debt ratchets)
+
+A rule earns a *debt ratchet* -- one with a baseline count that trends down
+-- only if it clears all four bars. `max-file-lines` (Ratchet D) is the
+worked example; it scores 4/4, which is why it catches real regressions
+constantly instead of sitting idle.
+
+1. **Fires often.** The violation happens during normal work, so the gate
+   does work on a routine cadence -- not "would catch a regression *if* one
+   happened" but "caught one this week." Files cross 350 lines all the time.
+   A gate that almost never fires is a tripwire in an empty room.
+2. **Silent in review.** A human reviewer reliably misses it. Nobody notices
+   a file creeping from 340 to 360 lines across a feature diff -- it reads as
+   correct. That invisibility is exactly the erosion class a mechanical
+   counter is *for*. If review catches it every time, you do not need a hook.
+3. **Pays down through ordinary work.** Fixing it happens because someone was
+   already in that file -- split the module, the count drops, the baseline
+   auto-follows and stages the diff. No "reduce file sizes" sprint, no
+   heroics. The paydown is a side-effect of normal development.
+4. **Cheap early, expensive late.** Catching it at commit costs seconds.
+   Catching it six months later means untangling a 900-line god-file nobody
+   wants to touch. That asymmetry is what justifies paying the per-commit
+   cost of the gate.
+
+If a candidate rule misses any bar, it is not a debt ratchet. "No function
+over 40 lines" fails bar 1 and 2 for most teams -- it fires rarely and review
+catches it -- so it stays a linter rule or a soft note, not a hook here.
+
+### The two kinds of ratchet
+
+Not every gate is a debt ratchet, and judging them all on the same axis is a
+category error a critic will exploit.
+
+- **Debt ratchets** are judged by *motion*. They carry a baseline count that
+  must trend down through normal work. Ratchets A, D, E, F, G. A debt ratchet
+  whose number never moves is the sinecure -- and the four-bar test plus the
+  shrink-only baseline are what stop it from being born or quietly stalling.
+- **Invariant gates** are judged by *deterrence*. They have no debt count and
+  fire rarely *on purpose*. Ratchet C (`anti-bypass`) is the example: it is a
+  security control, not a debt ledger. You do not measure a smoke detector by
+  how often it beeps. Its value is that the rare catch prevents something
+  catastrophic -- an agent editing its own guardrails.
+
+State which kind a gate is before defending it. A debt ratchet defends on
+"watch the number fall." An invariant gate defends on "here is the
+catastrophe it deters." Conflating the two is how a sinecure charge lands on
+a gate that is actually working.
+
+### How the system resists rot
+
+Three structural properties keep debt ratchets honest rather than ceremonial:
+
+- **Shrink-only baselines.** The count can fall or hold, never grow without a
+  human bypass. A frozen number means the code genuinely has not improved --
+  not that someone forgot to tighten the screw.
+- **Loud by default.** Every run prints the decision it made and why: which
+  baseline loaded, the current metric, the recorded metric, whether the
+  registry was rewritten. There is no `--quiet`. A flatlining ratchet is
+  visible in its own output, not something you have to remember to audit.
+- **Retirement is an outcome.** A debt ratchet that reaches zero and stays
+  there has *won*. Fold it into your linter or delete it. Birth criteria
+  without death criteria is how a hook pack bloats into hundreds of rules --
+  letting ratchets retire is what caps the count.
+
+The one-line answer to the skeptic: *a hold-only ratchet is a sinecure, and
+we do not ship those. A debt ratchet that clears the four-bar test fires
+often, catches what review misses, and pays itself down through normal work
+-- and the shrink-only baseline makes a flatline impossible to hide.*
+
+---
+
 ## Direct CLI
 
 Useful for debugging, CI scripting, or seeding a new baseline. Every hook
