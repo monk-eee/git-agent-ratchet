@@ -277,7 +277,87 @@ count of these specific narrowly-defined expedient markers may not grow."
 
 ---
 
-## 4. The Markdown Connection Layout
+## 4. When a Rule Earns a Ratchet (Anti-Rot Contract)
+
+The standing criticism of any ratchet system is that it degenerates into a
+**sinecure**: a gate that runs on every commit, reports green, *feels* like
+governance, but never changes behaviour and never pays down. It draws a
+salary for no work. A ratchet that cannot answer this charge must not be
+shipped. This section is the contract that answers it. A candidate rule that
+fails the test below does not become a hook -- it stays prose in `AGENTS.md`
+or moves to the linter.
+
+### 4.1 Two Kinds of Gate
+
+Gates are not homogeneous, and judging them on a single axis is a category
+error an external reviewer will exploit.
+
+- **Debt ratchets** are judged by *motion*. They carry a baseline count that
+  is expected to trend downward through ordinary work. Ratchets A, D, E, F,
+  G are debt ratchets. A debt ratchet whose count never moves across many
+  commits of active development is the sinecure failure mode.
+- **Invariant gates** are judged by *deterrence*. They carry no debt count
+  and fire rarely by design. Ratchet C (`anti-bypass`) is the canonical
+  example: it is a security control, not a debt ledger. Its value is that
+  the rare trigger prevents a catastrophic outcome (an agent mutating its
+  own guardrails). A smoke detector is not measured by how often it beeps.
+
+Every gate in this package MUST declare which kind it is. A debt ratchet is
+defended on "watch the count fall"; an invariant gate is defended on "here is
+the catastrophe it deters."
+
+### 4.2 The Four-Bar Test (Debt Ratchets)
+
+A rule earns a *debt ratchet* only if it clears all four bars. Ratchet D
+(`max-file-lines`) is the reference implementation; it scores 4/4.
+
+1. **Fires often.** The violation occurs during normal work, so the gate
+   does work on a routine cadence rather than guarding an event that almost
+   never happens. A gate that rarely fires is a tripwire in an empty room.
+2. **Silent in review.** A human reviewer reliably misses it. The change
+   reads as correct in a diff (a file drifting from 340 to 360 lines across
+   a feature). This invisibility is precisely the erosion class a mechanical
+   counter exists to catch. If review catches it reliably, no hook is needed.
+3. **Pays down through ordinary work.** Remediation happens as a side-effect
+   of someone already working in the affected file; the baseline auto-shrinks
+   and stages the diff. No dedicated cleanup sprint is required.
+4. **Cheap early, expensive late.** Detection at commit costs seconds;
+   detection months later costs a painful untangle. This asymmetry justifies
+   the per-commit cost of the gate.
+
+A candidate that misses any bar is not a debt ratchet. Example: "no function
+over 40 lines" fails bars 1 and 2 for most teams (it fires rarely and review
+catches it), so it remains a linter rule, not a ratchet.
+
+### 4.3 Structural Anti-Rot Properties
+
+Three properties keep debt ratchets honest rather than ceremonial. All three
+are invariants of the implementation, not conventions:
+
+- **Shrink-only baselines.** Per the Core Invariant, the metric may fall or
+  hold but never grow without a human bypass. A frozen count therefore means
+  the code has genuinely not improved -- never that someone forgot to tighten
+  the gate.
+- **Loud by default.** Every hook prints its decision and the evidence for it
+  (baseline loaded, current metric, recorded metric, whether the registry was
+  rewritten). There is no quiet mode. A flatlining ratchet is visible in its
+  own output and does not depend on anyone remembering to audit it.
+- **Retirement is a valid terminal state.** A debt ratchet that reaches zero
+  and holds there has succeeded and SHOULD be retired -- folded into the
+  linter or deleted. Birth criteria without death criteria is how a hook pack
+  bloats toward hundreds of rules; permitting retirement is what bounds the
+  rule count.
+
+### 4.4 The One-Line Defence
+
+A hold-only ratchet is a sinecure, and this package does not ship them. A
+debt ratchet that clears the four-bar test fires often, catches what review
+misses, and pays itself down through normal work -- and the shrink-only
+baseline makes a flatline impossible to hide.
+
+---
+
+## 5. The Markdown Connection Layout
 
 To close the control loop, the agent must see the gate before it collides with
 it. Every `AGENTS.md` file entry must map prose explicitly to its corresponding
@@ -285,7 +365,7 @@ programmatic ratchet gate.
 
 ---
 
-## 5. Immediate Implementation Bootstrap Roadmap
+## 6. Immediate Implementation Bootstrap Roadmap
 
 To execute rapid deployment of this package structure across private or
 open-source repositories, developer engineering teams must complete four
