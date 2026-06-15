@@ -5,7 +5,7 @@ A Programmatic Git Ratchet System for Automated Agent Guarding
 - **Author:** Monkee Magic & Git Ratchet Core
 - **Target Ecosystem:** Python, pre-commit, LLM Agents
 - **Date:** June 2026
-- **Version:** v1.1.0
+- **Version:** v1.2.0
 
 ---
 
@@ -50,7 +50,7 @@ repository inside their project's root `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.1.0
+    rev: v1.2.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args: [--baseline=config/ratchets/duplicates.json, --dir=src/]

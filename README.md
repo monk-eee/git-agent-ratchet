@@ -8,7 +8,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-de5feb)](https://github.com/astral-sh/uv)
-[![Version](https://img.shields.io/badge/version-1.1.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
 [![PyPI](https://img.shields.io/pypi/v/git-agent-ratchet.svg)](https://pypi.org/project/git-agent-ratchet/)
 
 > The rule didn't change. The cost of breaking it did.
@@ -130,7 +130,7 @@ Add the repo to your project's `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.1.0
+    rev: v1.2.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args:
