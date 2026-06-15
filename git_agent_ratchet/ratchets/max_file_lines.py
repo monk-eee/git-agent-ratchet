@@ -8,11 +8,11 @@ is permitted to shrink or stay flat across commits, never to grow.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from git_agent_ratchet.paths import relative_posix
+from git_agent_ratchet.paths import iter_python_files, relative_posix
 
 RATCHET_NAME = "max_file_lines"
 DEFAULT_EXCLUDE_DIRS = ("tests", "test")
@@ -29,18 +29,6 @@ class OversizedFile:
 
     def to_dict(self) -> dict[str, object]:
         return {"path": self.path, "line_count": self.line_count, "overage": self.overage}
-
-
-def iter_python_files(
-    root: Path, exclude_dirs: Iterable[str] = DEFAULT_EXCLUDE_DIRS
-) -> Iterator[Path]:
-    """Yield .py files under root, skipping any path containing an excluded dir name."""
-    excluded = {d.lower() for d in exclude_dirs}
-    for path in sorted(root.rglob("*.py")):
-        parts = {p.lower() for p in path.parts}
-        if parts & excluded:
-            continue
-        yield path
 
 
 def count_lines(source_path: Path) -> int:

@@ -39,3 +39,39 @@
   pass_filenames: false
   always_run: true
   stages: [pre-commit, manual]
+
+- id: ratchet-no-cross-module-private-import
+  name: git-agent-ratchet | no cross-module private imports
+  description: >-
+    Fail when the count of cross-module imports of underscore-prefixed names
+    (e.g. `from pkg.mod import _foo`) exceeds the recorded baseline. Privacy
+    convention: leading-underscore names belong to their defining module.
+  entry: ratchet-no-cross-module-private-import
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit, manual]
+
+- id: ratchet-no-print-outside-allowlist
+  name: git-agent-ratchet | no print() outside allowlist
+  description: >-
+    Fail when the count of `print()` calls outside the allowlisted path prefixes
+    (CLI / hook shims) exceeds the recorded baseline. Production modules use
+    `logging.getLogger(__name__)`.
+  entry: ratchet-no-print-outside-allowlist
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit, manual]
+
+- id: ratchet-no-temporary-comments
+  name: git-agent-ratchet | no temporary-comment markers
+  description: >-
+    Fail when the count of 'for now' / 'back-compat' / 'transitional bridge' /
+    'TODO: remove once' markers exceeds the recorded baseline. These are the
+    calcified-shortcut tells; the comment is the smell.
+  entry: ratchet-no-temporary-comments
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit, manual]

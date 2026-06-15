@@ -10,12 +10,15 @@ from git_agent_ratchet._version import __version__
 from git_agent_ratchet.cli import SUBCOMMANDS, main
 
 
-def test_subcommand_table_lists_all_four_ratchets() -> None:
+def test_subcommand_table_lists_all_registered_ratchets() -> None:
     assert set(SUBCOMMANDS) == {
         "no-duplicate-helpers",
         "deny-agent-chatter",
         "anti-bypass",
         "max-file-lines",
+        "no-cross-module-private-import",
+        "no-print-outside-allowlist",
+        "no-temporary-comments",
     }
 
 

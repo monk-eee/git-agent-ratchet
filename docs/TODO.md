@@ -35,6 +35,19 @@ Progress tracker, known gaps, and triage list.
       regex + C# regex extractors, `--lang` filter, registry under
       `git_agent_ratchet/ratchets/extractors/`)
 - [x] Tagged + released v1.1.0 to PyPI via trusted publisher
+- [x] Ratchet E (no-cross-module-private-import) -- AST scanner + hook + CLI +
+      tests + dogfood; flags `from pkg.mod import _foo` and bars the count
+      from growing
+- [x] Ratchet F (no-print-outside-allowlist) -- AST scanner + hook + CLI +
+      tests + dogfood; graduates the soft `logging.getLogger(__name__)` rule
+      in DEVELOPERS.md, with `--allow-prefix` for stderr-writing shims
+- [x] Ratchet G (no-temporary-comments) -- cross-language regex scanner + hook
+      + CLI + tests + dogfood; catches `for now`, `back-compat`, `transitional
+      bridge`, `TODO: remove once`, `HACK: fix later` markers; per-line
+      `ratchet-allow: temporary_comments` opt-out
+- [x] Shared `iter_python_files` extracted to `git_agent_ratchet/paths.py` so
+      Ratchets D / E / F share one walker (Ratchet A caught the fork on the
+      seven-ratchet expansion)
 
 ## Next
 
@@ -53,10 +66,26 @@ candidate ratchet.
 
 ## Known bugs
 
-_None reported. When you spot one while doing other work, log it here with:
-(1) what you observed, (2) where (file + symbol or test name),
-(3) impact / blast radius, (4) whether you fixed it in this run or left
-it for later._
+- [FIXED] `anti_bypass._normalize` used `str.lstrip("./")`, which treats
+  `./` as a *character set* and stripped any leading `.` or `/`. Result:
+  dotfile paths in the gate output were mangled (`.pre-commit-hooks.yaml`
+  -> `pre-commit-hooks.yaml`, `.env` -> `env`). Enforcement still worked
+  (both sides of the comparison were mangled identically) but the
+  diagnostic was confusing. Fix: strip only the literal `./` prefix.
+  Regression test:
+  `tests/test_anti_bypass_regressions.py::test_normalize_preserves_leading_dot_in_dotfiles`
+  + `::test_blocked_decision_reports_dotfile_with_leading_dot_intact`.
+
+- [FIXED] `print_outside_allowlist.is_allowed` ended its match with
+  `or label.startswith(norm)`, a bare string-prefix check. A prefix like
+  `pkg/cli` wrongly allow-listed `pkg/client.py` (and `src/util` allowed
+  `src/utility.py`), silently exempting files the operator never intended
+  to allowlist -- so stray `print()` calls in those files went undetected.
+  Fix: match only the exact file or a directory boundary (`norm + "/"`).
+  The same function's `str.lstrip("./")` was routed through the shared
+  `paths.strip_dot_slash` for consistency (that part was benign -- the
+  stripping was symmetric on both sides of the comparison). Regression
+  test: `tests/test_print_outside_allowlist_regressions.py::test_is_allowed_does_not_match_bare_string_prefix`.
 
 ## Known duplicates
 

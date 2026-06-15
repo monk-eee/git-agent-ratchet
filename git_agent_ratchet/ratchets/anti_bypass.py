@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from git_agent_ratchet.paths import strip_dot_slash
+
 RATCHET_NAME = "anti_bypass"
 
 BYPASS_KEY_ENV = "HUMAN_RATCHET_BYPASS_KEY"
@@ -37,7 +39,7 @@ class BypassDecision:
 
 
 def _normalize(path: str | Path) -> str:
-    return Path(path).as_posix().lstrip("./")
+    return strip_dot_slash(Path(path).as_posix())
 
 
 def detect_agent_signal(env: dict[str, str] | None = None) -> str | None:

@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-15
+
+### Added
+- **Ratchet E -- `ratchet-no-cross-module-private-import`**
+  (`private_imports.json`). AST scan that blocks importing a private
+  (`_`-prefixed) name across module boundaries -- `from pkg.mod import
+  _foo` and `import pkg._foo`. Relative imports and dunders are ignored.
+  New scanner `git_agent_ratchet/ratchets/cross_module_private_import.py`,
+  hook `git_agent_ratchet/hooks/no_cross_module_private_import.py`, console
+  script `ratchet-no-cross-module-private-import`, and
+  `no-cross-module-private-import` subcommand on the unified CLI.
+- **Ratchet F -- `ratchet-no-print-outside-allowlist`**
+  (`print_calls.json`). AST scan for `print(...)` calls outside
+  allowlisted path prefixes (use `logging` everywhere else; stderr shims
+  under `git_agent_ratchet/hooks` and `git_agent_ratchet/cli.py` are
+  allowlisted via `--allow-prefix`).
+- **Ratchet G -- `ratchet-no-temporary-comments`**
+  (`temporary_comments.json`). Regex scan for expedient-path comment
+  markers (`for now`, `back-compat`, `TODO: remove once`, `HACK: fix
+  later`, transitional bridges) across `.py/.ts/.tsx/.js/.jsx/.cs/.go/`
+  `.rs/.java/.kt`, with a `ratchet-allow: temporary_comments` per-line
+  escape marker.
+
+### Changed
+- Extracted `git_agent_ratchet/hooks/gate.py::run_ratchet_gate` as the
+  single seed / trip / ratchet-down / equal implementation. Ratchets A,
+  D, E, F, and G all dispatch through it, removing the inline-duplicated
+  control flow that each baseline-gate hook previously carried.
+- Added shared path helpers `paths.strip_dot_slash` and
+  `paths.iter_python_files`. `strip_dot_slash` replaces a
+  `str.lstrip("./")` character-set misuse (which mangled dotfile paths
+  such as `.pre-commit-hooks.yaml`) in `anti_bypass._normalize` and the
+  new print scanner.
+- README, CLI, and `.pre-commit-hooks.yaml` now advertise seven ratchets.
+
+### Fixed
+- `print_outside_allowlist.is_allowed` matched allow-prefixes by bare
+  string prefix (`label.startswith(norm)`), so a prefix like `pkg/cli`
+  wrongly allow-listed `pkg/client.py` and let stray `print()` calls go
+  undetected. It now matches only the exact file or a directory boundary
+  (`norm + "/"`). Regression-tested.
+
 ## [1.1.0] - 2026-06-03
 
 ### Added
@@ -85,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ratchet C never logs the bypass key value; only its presence is
   acknowledged in failure output (regression-tested).
 
-[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/monk-eee/git-agent-ratchet/releases/tag/v1.0.0

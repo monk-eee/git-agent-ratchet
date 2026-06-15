@@ -53,6 +53,9 @@ mechanically enforced, it goes in the "Known soft rules" section of
 | No agent chatter in any file | `ratchet-deny-agent-chatter` | [git_agent_ratchet/hooks/deny_agent_chatter.py](git_agent_ratchet/hooks/deny_agent_chatter.py) |
 | No agent self-bypass of the ratchets | `ratchet-anti-bypass` | [git_agent_ratchet/hooks/anti_bypass.py](git_agent_ratchet/hooks/anti_bypass.py) |
 | Per-file line count <= 350 (sum of overages) | `ratchet-max-file-lines` | [git_agent_ratchet/hooks/max_file_lines.py](git_agent_ratchet/hooks/max_file_lines.py) |
+| No cross-module imports of `_private` names | `ratchet-no-cross-module-private-import` | [git_agent_ratchet/hooks/no_cross_module_private_import.py](git_agent_ratchet/hooks/no_cross_module_private_import.py) |
+| No `print()` outside allowlisted shims (use `logging`) | `ratchet-no-print-outside-allowlist` | [git_agent_ratchet/hooks/no_print_outside_allowlist.py](git_agent_ratchet/hooks/no_print_outside_allowlist.py) |
+| No expedient-path comment markers (`for now`, `back-compat`, `TODO: remove once`, `HACK: fix later`) | `ratchet-no-temporary-comments` | [git_agent_ratchet/hooks/no_temporary_comments.py](git_agent_ratchet/hooks/no_temporary_comments.py) |
 | Lint + format clean | `ruff` (check + format --check) | `pyproject.toml [tool.ruff]` |
 | Trailing whitespace / EOF / line endings / merge markers / large files | `pre-commit-hooks` | `.pre-commit-config.yaml` |
 
