@@ -56,6 +56,7 @@ mechanically enforced, it goes in the "Known soft rules" section of
 | No cross-module imports of `_private` names | `ratchet-no-cross-module-private-import` | [git_agent_ratchet/hooks/no_cross_module_private_import.py](git_agent_ratchet/hooks/no_cross_module_private_import.py) |
 | No `print()` outside allowlisted shims (use `logging`) | `ratchet-no-print-outside-allowlist` | [git_agent_ratchet/hooks/no_print_outside_allowlist.py](git_agent_ratchet/hooks/no_print_outside_allowlist.py) |
 | No expedient-path comment markers (`for now`, `back-compat`, `TODO: remove once`, `HACK: fix later`) | `ratchet-no-temporary-comments` | [git_agent_ratchet/hooks/no_temporary_comments.py](git_agent_ratchet/hooks/no_temporary_comments.py) |
+| No PowerShell command usage in committed text | `ratchet-dont-use-powershell` | [git_agent_ratchet/hooks/dont_use_powershell.py](git_agent_ratchet/hooks/dont_use_powershell.py) |
 | Lint + format clean | `ruff` (check + format --check) | `pyproject.toml [tool.ruff]` |
 | Trailing whitespace / EOF / line endings / merge markers / large files | `pre-commit-hooks` | `.pre-commit-config.yaml` |
 
@@ -71,7 +72,7 @@ mechanically enforced, it goes in the "Known soft rules" section of
 
 ## What is this repo?
 
-`git-agent-ratchet` is a small Python package that ships three pre-commit hooks
+`git-agent-ratchet` is a small Python package that ships eight pre-commit hooks
 designed to keep LLM coding agents on rails. The premise (full version in
 [docs/spec.md](docs/spec.md)): prose instructions in `AGENTS.md` or `CLAUDE.md`
 experience silent rule erosion over long multi-turn context windows; agents
@@ -80,7 +81,7 @@ prose rule into a deterministic gate at commit time, so the *cost profile* of
 breaking the rule changes -- the rule itself does not need to be re-asserted
 every turn.
 
-The three hooks:
+The eight hooks:
 
 1. **Ratchet A -- `no-duplicate-helpers`.** AST scan for private/semi-private
    top-level functions that appear in two or more files. Count is tracked in a
@@ -93,6 +94,16 @@ The three hooks:
    files themselves unless `HUMAN_RATCHET_BYPASS_KEY` is set in the
    environment. Detects common automated-agent env signatures
    (`CURSOR_AGENT`, `CLAUDECODE`, `AIDER`, `COPILOT_AGENT`, ...).
+4. **Ratchet D -- `max-file-lines`.** Bars per-file growth past the recorded
+  line-overage baseline.
+5. **Ratchet E -- `no-cross-module-private-import`.** Blocks cross-module
+  imports of underscore-prefixed names.
+6. **Ratchet F -- `no-print-outside-allowlist`.** Blocks new `print()` calls
+  outside allowlisted shims.
+7. **Ratchet G -- `no-temporary-comments`.** Blocks growth of expedient-path
+  markers (`for now`, `back-compat`, `TODO: remove once`, `HACK: fix later`).
+8. **Ratchet H -- `dont-use-powershell`.** Blocks command-like PowerShell
+  usage in committed text.
 
 The full design contract is [docs/spec.md](docs/spec.md). The CLI surface is
 in [git_agent_ratchet/cli.py](git_agent_ratchet/cli.py).

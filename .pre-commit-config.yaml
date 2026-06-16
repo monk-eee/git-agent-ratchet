@@ -92,3 +92,9 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: ratchet-dont-use-powershell
+        name: ratchet | dont use powershell
+        entry: uv run git-agent-ratchet dont-use-powershell
+        language: system
+        types: [text]

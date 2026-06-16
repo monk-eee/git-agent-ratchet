@@ -48,6 +48,9 @@ Progress tracker, known gaps, and triage list.
 - [x] Shared `iter_python_files` extracted to `git_agent_ratchet/paths.py` so
       Ratchets D / E / F share one walker (Ratchet A caught the fork on the
       seven-ratchet expansion)
+- [x] Ratchet H (dont-use-powershell) -- staged-text scanner + hook + CLI +
+      tests + dogfood; blocks command-like PowerShell usage patterns and
+      nudges cross-platform alternatives
 
 ## Next
 

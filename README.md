@@ -8,13 +8,13 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Built with uv](https://img.shields.io/badge/built%20with-uv-de5feb)](https://github.com/astral-sh/uv)
-[![Version](https://img.shields.io/badge/version-1.2.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-informational)](https://github.com/monk-eee/git-agent-ratchet/releases)
 [![PyPI](https://img.shields.io/pypi/v/git-agent-ratchet.svg)](https://pypi.org/project/git-agent-ratchet/)
 
 > The rule didn't change. The cost of breaking it did.
 
 A pre-commit hook pack that turns the polite suggestions in your `AGENTS.md`
-into deterministic gates at commit time. Seven small, ugly, single-purpose
+into deterministic gates at commit time. Eight small, ugly, single-purpose
 scripts. They do not get clever. They just fail loudly when an agent does
 the thing your file already told it not to do.
 
@@ -38,8 +38,11 @@ the thing your file already told it not to do.
 - **Ratchet G** -- `no-temporary-comments`. Cross-language regex scan.
   Expedient-path markers (`for now`, `back-compat`, `transitional bridge`,
   `TODO: remove once X migrates`) cannot ride into a commit.
+- **Ratchet H** -- `dont-use-powershell`. Regex scan for PowerShell command
+  usage patterns in staged text (executable invocations, `.ps1` command
+  references, cmdlets, and `$env:` prefixes).
 
-The package itself runs all seven of these against itself on every commit.
+The package itself runs all eight of these against itself on every commit.
 If our own hooks fail on our own code, the change is wrong. That's the test.
 
 ---
@@ -130,7 +133,7 @@ Add the repo to your project's `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.2.0
+    rev: v1.3.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args:
@@ -159,6 +162,8 @@ repos:
         args:
           - --baseline=config/ratchets/temporary_comments.json
           - --dir=src/
+      - id: ratchet-dont-use-powershell
+        files: \.(py|md|txt|ya?ml|toml|json|sh|bash|zsh)$
 ```
 
 Then:
@@ -181,7 +186,7 @@ A minimal working layout lives in
 
 ---
 
-## The seven ratchets, in detail
+## The eight ratchets, in detail
 
 ### Ratchet A -- `ratchet-no-duplicate-helpers`
 
@@ -413,6 +418,21 @@ comment syntax). The unmarked match count is the metric.
 | `--dir` | `src` | Directory to scan. |
 | `--exclude` | `tests`, `test`, `node_modules`, `.venv`, `venv`, `dist`, `build` | Repeatable. Path-segment names to skip. |
 
+### Ratchet H -- `ratchet-dont-use-powershell`
+
+**Target failure mode.** On Windows-hosted sessions, agents often emit
+PowerShell commands into committed docs or scripts because the shell is
+PowerShell. That guidance is not portable for macOS/Linux contributors.
+
+**What it does.** Scans staged text files for command-like PowerShell
+usage patterns: executable invocations (`powershell`/`pwsh` with switches),
+`.ps1` command references, common PowerShell cmdlets, and `$env:` prefixes.
+Lines may opt out with `ratchet-allow: powershell_usage` when the phrase is
+quoted intentionally in tests/docs.
+
+**Gate rule.** Any match -> hard fail with file/line/signature output on
+stderr. No baseline file; this is an invariant gate.
+
 ---
 
 ## The baseline registry
@@ -574,6 +594,9 @@ git-agent-ratchet no-print-outside-allowlist \
 git-agent-ratchet no-temporary-comments \
     --dir src \
     --baseline config/ratchets/temporary_comments.json
+
+# Ratchet H
+git-agent-ratchet dont-use-powershell path/to/file.md path/to/workflow.yml
 ```
 
 Each subcommand prints the decision it made and why. There is no `--quiet`
@@ -633,7 +656,7 @@ make test-cov               # with coverage
 make lint                   # ruff check + ruff format --check
 make format                 # ruff check --fix + ruff format
 
-# Dogfood: run all seven ratchets against this repo
+# Dogfood: run all eight ratchets against this repo
 make ratchet
 ```
 
@@ -667,7 +690,8 @@ None of them call out over the network.
 The console scripts (`ratchet-no-duplicate-helpers`,
 `ratchet-deny-agent-chatter`, `ratchet-anti-bypass`,
 `ratchet-max-file-lines`, `ratchet-no-cross-module-private-import`,
-`ratchet-no-print-outside-allowlist`, `ratchet-no-temporary-comments`)
+`ratchet-no-print-outside-allowlist`, `ratchet-no-temporary-comments`,
+`ratchet-dont-use-powershell`)
 and the unified `git-agent-ratchet` CLI are pure Python and have no
 `pre-commit` dependency at runtime. Wire them into any hook runner that
 can execute a Python console script. The bundled `.pre-commit-hooks.yaml`

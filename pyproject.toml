@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "git-agent-ratchet"
-version = "1.2.0"
+version = "1.3.0"
 description = "A programmatic git ratchet system for automated agent guarding."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,6 +48,7 @@ ratchet-max-file-lines = "git_agent_ratchet.hooks.max_file_lines:main"
 ratchet-no-cross-module-private-import = "git_agent_ratchet.hooks.no_cross_module_private_import:main"
 ratchet-no-print-outside-allowlist = "git_agent_ratchet.hooks.no_print_outside_allowlist:main"
 ratchet-no-temporary-comments = "git_agent_ratchet.hooks.no_temporary_comments:main"
+ratchet-dont-use-powershell = "git_agent_ratchet.hooks.dont_use_powershell:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["git_agent_ratchet"]

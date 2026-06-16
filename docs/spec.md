@@ -5,7 +5,7 @@ A Programmatic Git Ratchet System for Automated Agent Guarding
 - **Author:** Monkee Magic & Git Ratchet Core
 - **Target Ecosystem:** Python, pre-commit, LLM Agents
 - **Date:** June 2026
-- **Version:** v1.2.0
+- **Version:** v1.3.0
 
 ---
 
@@ -50,7 +50,7 @@ repository inside their project's root `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/monk-eee/git-agent-ratchet
-    rev: v1.2.0
+   rev: v1.3.0
     hooks:
       - id: ratchet-no-duplicate-helpers
         args: [--baseline=config/ratchets/duplicates.json, --dir=src/]
@@ -66,6 +66,8 @@ repos:
         args: [--baseline=config/ratchets/print_calls.json, --dir=src/, --allow-prefix=src/cli.py]
       - id: ratchet-no-temporary-comments
         args: [--baseline=config/ratchets/temporary_comments.json, --dir=src/]
+         - id: ratchet-dont-use-powershell
+            files: \.(py|md|txt|ya?ml|toml|json|sh|bash|zsh)$
 ```
 
 ### 2.2 The Unified Baseline Registry Format
@@ -275,6 +277,24 @@ count of these specific narrowly-defined expedient markers may not grow."
    matches.
 5. **The Gate Rule:** Same shape as Ratchet A / D / E / F.
 
+### 3.8 Ratchet H: PowerShell Command Usage Detection
+
+**Target Failure Mode:** On Windows-hosted sessions, agents frequently emit
+PowerShell commands into repo artifacts (`powershell -Command ...`,
+`pwsh -NoProfile ...`, `Set-ExecutionPolicy ...`, `$env:FOO=...`) even when
+the repository standard is cross-platform command guidance.
+
+**Programmatic Execution Mechanics:**
+
+1. The hook scans staged text files passed by pre-commit.
+2. Each line is matched against `POWERSHELL_SIGNATURES` for command-like
+   patterns: executable invocations (`powershell` / `pwsh` with switches),
+   `.ps1` command references, common cmdlets, and `$env:` prefixes.
+3. Lines containing the per-line allow marker
+   `ratchet-allow: powershell_usage` are skipped.
+4. **The Gate Rule:** Any match is a hard fail (exit `1`) with file + line
+   diagnostics. This ratchet is invariant-style (no baseline registry).
+
 ---
 
 ## 4. When a Rule Earns a Ratchet (Anti-Rot Contract)
@@ -297,10 +317,10 @@ error an external reviewer will exploit.
   G are debt ratchets. A debt ratchet whose count never moves across many
   commits of active development is the sinecure failure mode.
 - **Invariant gates** are judged by *deterrence*. They carry no debt count
-  and fire rarely by design. Ratchet C (`anti-bypass`) is the canonical
-  example: it is a security control, not a debt ledger. Its value is that
-  the rare trigger prevents a catastrophic outcome (an agent mutating its
-  own guardrails). A smoke detector is not measured by how often it beeps.
+   and fire rarely by design. Ratchet C (`anti-bypass`) and Ratchet H
+   (`dont-use-powershell`) are invariant gates: one protects the guardrails,
+   the other protects cross-platform command hygiene in committed text.
+   A smoke detector is not measured by how often it beeps.
 
 Every gate in this package MUST declare which kind it is. A debt ratchet is
 defended on "watch the count fall"; an invariant gate is defended on "here is

@@ -109,10 +109,8 @@ git rev.
 genuine exception (e.g. landing the cleanup commit that legitimately
 reduces a baseline mid-merge). Use it like this:
 
-```powershell
-$env:HUMAN_RATCHET_BYPASS_KEY = "i-am-a-human-and-i-know-what-i-am-doing"
-git commit -m "cleanup: extract _safe_load_or_default -> baseline.py"
-Remove-Item Env:HUMAN_RATCHET_BYPASS_KEY
+```bash
+uv run python -c "import os, subprocess; env=dict(os.environ, HUMAN_RATCHET_BYPASS_KEY='i-am-a-human-and-i-know-what-i-am-doing'); subprocess.check_call(['git','commit','-m','cleanup: extract _safe_load_or_default -> baseline.py'], env=env)"
 ```
 
 Never put the key in `.env`, a CI secret, or any persistent shell

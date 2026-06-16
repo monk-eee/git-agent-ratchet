@@ -75,3 +75,13 @@
   pass_filenames: false
   always_run: true
   stages: [pre-commit, manual]
+
+- id: ratchet-dont-use-powershell
+  name: git-agent-ratchet | dont use powershell
+  description: >-
+    Block staged text that contains PowerShell usage (powershell/pwsh,
+    .ps1 references, and common cmdlets). Use cross-platform alternatives.
+  entry: ratchet-dont-use-powershell
+  language: python
+  types: [text]
+  stages: [pre-commit, manual]

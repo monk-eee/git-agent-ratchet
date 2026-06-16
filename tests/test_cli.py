@@ -19,6 +19,7 @@ def test_subcommand_table_lists_all_registered_ratchets() -> None:
         "no-cross-module-private-import",
         "no-print-outside-allowlist",
         "no-temporary-comments",
+        "dont-use-powershell",
     }
 
 
@@ -117,3 +118,12 @@ def test_dispatch_to_max_file_lines_seeds_baseline(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert baseline.exists()
+
+
+def test_dispatch_to_dont_use_powershell_blocks_match(tmp_path: Path) -> None:
+    p = tmp_path / "leaked.md"
+    p.write_text('pwsh -NoProfile -Command "echo hi"\n', encoding="utf-8")
+
+    exit_code = main(["dont-use-powershell", str(p)])
+
+    assert exit_code == 1

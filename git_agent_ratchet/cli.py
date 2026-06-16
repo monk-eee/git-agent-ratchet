@@ -9,6 +9,7 @@ from git_agent_ratchet._version import __version__
 from git_agent_ratchet.hooks import (
     anti_bypass,
     deny_agent_chatter,
+    dont_use_powershell,
     max_file_lines,
     no_cross_module_private_import,
     no_duplicate_helpers,
@@ -24,6 +25,7 @@ SUBCOMMANDS = {
     "no-cross-module-private-import": no_cross_module_private_import.main,
     "no-print-outside-allowlist": no_print_outside_allowlist.main,
     "no-temporary-comments": no_temporary_comments.main,
+    "dont-use-powershell": dont_use_powershell.main,
 }
 
 

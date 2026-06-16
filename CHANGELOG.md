@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-16
+
+### Added
+- **Ratchet H -- `ratchet-dont-use-powershell`** (invariant gate).
+  Blocks command-like PowerShell usage in staged text, including
+  executable invocations (`powershell` / `pwsh` with switches), `.ps1`
+  command references, common cmdlets, and `$env:` prefixes.
+  Introduces scanner module
+  `git_agent_ratchet/ratchets/powershell_usage.py`, hook entry point
+  `git_agent_ratchet/hooks/dont_use_powershell.py`, console script
+  `ratchet-dont-use-powershell`, and unified CLI subcommand
+  `dont-use-powershell`.
+
 ### Documentation
 - Codified the **anti-rot contract** that governs when a rule earns a
   ratchet. README gains a "When does a rule earn a ratchet (and how this
@@ -16,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   / cheap early-expensive late), the debt-ratchet vs invariant-gate
   distinction, and the shrink-only / loud-by-default / retirement
   properties that keep a ratchet from degenerating into a sinecure.
+- Updated all user-facing docs for the eight-ratchet surface:
+  `README.md`, `AGENTS.md`, and `docs/spec.md` now consistently include
+  Ratchet H and release version `v1.3.0` references.
 
 ## [1.2.0] - 2026-06-15
 
@@ -137,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ratchet C never logs the bypass key value; only its presence is
   acknowledged in failure output (regression-tested).
 
-[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/monk-eee/git-agent-ratchet/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/monk-eee/git-agent-ratchet/releases/tag/v1.0.0
